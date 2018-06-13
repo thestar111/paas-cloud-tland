@@ -1,0 +1,5 @@
+server:
+  port: ${port:28761}
+spring:
+  application:
+    name: tland-regist-center

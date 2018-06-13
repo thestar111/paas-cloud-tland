@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>paas-cloud-tland</artifactId>
+        <groupId>com.quanteng</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>paas-cloud-user-pojo</module>
+        <module>paas-cloud-cms-pojo</module>
+        <module>paas-cloud-charging-pojo</module>
+        <module>paas-cloud-vas-pojo</module>
+    </modules>
+
+    <artifactId>paas-cloud-pojo</artifactId>
+
+    <name>paas-cloud-pojo</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <lombok.version>1.16.18</lombok.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.quanteng</groupId>
+            <artifactId>paas-cloud-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+</project>

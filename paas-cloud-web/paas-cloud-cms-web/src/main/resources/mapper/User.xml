@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.quanteng.tland.cms.database.mapper.UserMapper">
+
+    <resultMap id="UserMap" type="User">
+        <id property="accountId" column="accountId"/>
+        <result column="accountName" property="accountName"/>
+        <result column="accountIcon" property="accountIcon"/>
+        <result column="registerTime" property="registerTime"/>
+        <result column="password" property="password"/>
+        <result column="channel" property="channel"/>
+    </resultMap>
+
+    <insert id="addUser" parameterType="User">
+        INSERT INTO T_USER(accountid, accountname, accounticon, registertime, password, channel)
+        VALUES (#{accountId}, #{accountName}, #{accountIcon}, #{registerTime}, #{password}, #{channel})
+    </insert>
+
+    <select id="queryById" parameterType="String" resultMap="UserMap">
+        SELECT * FROM T_USER WHERE accountId = #{accountId}
+    </select>
+</mapper>

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.quanteng.tland.cms.database.mapper.BundleMapper">
+
+    <!--套餐数据列信息-->
+    <sql id="PACKAGE_COLUMN">
+        bundleId, bundleName, useTime, bundleType, price, subCommandWord, unSubCommandWord, serviceID, createTime, lastUpdateTime, extend1, extend2, extend3, extend4, memo
+    </sql>
+
+    <!--套餐多语言数据列信息-->
+    <sql id="PACKAGE_LANG_COLUMN">
+        id, bundleId, bundleName, memo, local
+    </sql>
+
+    <!--套餐与多语言数据列信息-->
+    <sql id="PACKAGE_AND_LANG_COLUMN">
+        T.bundleId, TL.bundleName, T.useTime, T.bundleType, T.price, TL.memo
+    </sql>
+
+    <!--添加套餐信息-->
+    <insert id="createBundle" parameterType="Bundle">
+        INSERT INTO T_PACKAGE (
+        <include refid="PACKAGE_COLUMN"/>
+        )
+        VALUES
+        (#{bundleId}, #{bundleName}, #{useTime}, #{bundleType}, #{price}, #{subCommandWord}, #{unSubCommandWord},
+        #{serviceID}, DATE_FORMAT(NOW(),"%Y-%m-%d %H:%i:%s"), DATE_FORMAT(NOW(),"%Y-%m-%d %H:%i:%s"), #{extend1},
+        #{extend2}, #{extend3}, #{extend4}, #{memo} )
+    </insert>
+
+    <!--添加套餐多语言信息-->
+    <insert id="addBundleLang" parameterType="Bundlelang">
+        INSERT INTO T_PACKAGE_LANG (
+        <include refid="PACKAGE_LANG_COLUMN"/>
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id}, #{item.bundleId}, #{item.bundleName}, #{item.memo}, #{item.local})
+        </foreach>
+    </insert>
+
+    <!--修改套餐信息-->
+    <update id="modifyBundle" parameterType="Bundle">
+        UPDATE T_PACKAGE
+        <set>
+            <if test="bundleName != null">
+                bundleName = #{bundleName},
+            </if>
+            <if test="useTime != null">
+                useTime = #{useTime},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            <if test="memo != null">
+                memo = #{memo},
+            </if>
+            <if test="bundleType != null">
+                bundleType = #{bundleType},
+            </if>
+            <if test="subCommandWord != null">
+                subCommandWord = #{subCommandWord},
+            </if>
+            <if test="unSubCommandWord != null">
+                unSubCommandWord = #{unSubCommandWord},
+            </if>
+            <if test="extend1 != null">
+                extend1 = #{extend1},
+            </if>
+            <if test="extend2 != null">
+                extend2 = #{extend2},
+            </if>
+            <if test="extend3 != null">
+                extend3 = #{extend3},
+            </if>
+            <if test="extend4 != null">
+                extend4 = #{extend4},
+            </if>
+            <if test="serviceID != null">
+                serviceID = #{serviceID},
+            </if>
+            lastUpdateTime = DATE_FORMAT(NOW(),"%Y-%m-%d %H:%i:%s")
+        </set>
+        WHERE bundleId = #{bundleId}
+    </update>
+
+    <!-- 修改套餐多语言信息 -->
+    <update id="modifyBundleLang" parameterType="java.util.List">
+        UPDATE T_PACKAGE_LANG
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix=" bundleName =case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="item.bundleName != null">
+                        when bundleId = #{item.bundleId} AND local= #{item.local} then #{item.bundleName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix=" memo =case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="item.memo != null">
+                        when bundleId = #{item.bundleId} AND local= #{item.local} then #{item.memo}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        WHERE
+        <foreach collection="list" separator="or" item="item" index="index">
+            bundleId = #{item.bundleId} AND local= #{item.local}
+        </foreach>
+    </update>
+
+    <!--删除套餐信息-->
+    <delete id="deleteBundle" parameterType="String">
+        DELETE FROM T_PACKAGE WHERE bundleId = #{bundleId}
+    </delete>
+
+    <!--删除套餐多语言信息-->
+    <delete id="deleteBundleLang" parameterType="String">
+        DELETE FROM T_PACKAGE_LANG WHERE bundleId = #{bundleId}
+    </delete>
+
+    <!--根据套餐编号查询套餐信息 供平台使用-->
+    <select id="findPackageById" parameterType="String" resultType="Bundle">
+        SELECT <include refid="PACKAGE_COLUMN"/> FROM T_PACKAGE WHERE bundleId = #{bundleId}
+    </select>
+
+    <!--根据套餐编号查询套餐多语言信息 供平台使用-->
+    <select id="findPackageLangById" parameterType="String" resultType="BundleLang">
+        SELECT <include refid="PACKAGE_LANG_COLUMN"/> FROM T_PACKAGE_LANG WHERE bundleId = #{bundleId}
+    </select>
+
+    <!--根据套餐编号查询套餐信息 供客户端使用-->
+    <select id="queryPackageById" resultType="Bundle">
+        SELECT <include refid="PACKAGE_AND_LANG_COLUMN"/> FROM T_PACKAGE T INNER JOIN T_PACKAGE_LANG TL ON T.bundleId=TL.bundleId
+        WHERE T.bundleId = #{bundleId} AND TL.local=#{language}
+    </select>
+
+    <!--多条件查询套餐信息-->
+    <select id="queryBundlesByCondition" resultType="Bundle" parameterType="Map">
+        SELECT <include refid="PACKAGE_AND_LANG_COLUMN"/> FROM T_PACKAGE T INNER JOIN T_PACKAGE_LANG TL ON T.bundleId=TL.bundleId
+        WHERE TL.local=#{language}
+        <if test="bundleName != null">
+            AND TL.bundleName LIKE concat (#{bundleName}, '%')
+        </if>
+        <if test="bundleType != null">
+            AND T.bundleType=#{bundleType}
+        </if>
+    </select>
+
+    <!--多条件查询套餐总数信息-->
+    <select id="queryBundlesCountByCondition" resultType="Integer" parameterType="Map">
+        SELECT COUNT(1) FROM T_PACKAGE T INNER JOIN T_PACKAGE_LANG TL ON T.bundleId=TL.bundleId
+        WHERE TL.local=#{language}
+        <if test="bundleName != null">
+            AND TL.bundleName LIKE concat (#{bundleName}, '%')
+        </if>
+        <if test="bundleType != null">
+            AND T.bundleType=#{bundleType}
+        </if>
+    </select>
+
+</mapper>

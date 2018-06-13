@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <!--<typeAliases>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.Ad" alias="Ad"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.AdLang" alias="AdLang"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.Admin" alias="Ad"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.AdminRoleRelation" alias="Ad"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.App" alias="Ad"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.AppLang" alias="Ad"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.Bundle" alias="Ad"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.BundleAppOrCatalogRelation" alias="Ad"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.Catalog" alias="Catalog"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.CatalogAdRela" alias="CatalogAdRela"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.CatalogAdsRela" alias="CatalogAdsRela"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.CatalogAppRela" alias="CatalogAppRela"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.CatalogLang" alias="CatalogLang"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.CatalogRelation" alias="CatalogRelation"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.Channel" alias="Channel"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.Cp" alias="Ad"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.CpLang" alias="CpLang"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.Local" alias="Local"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.Menu" alias="Menu"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.MenuLang" alias="MenuLang"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.MenuRoleRelation" alias="MenuRoleRelation"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.BundleLang alias="BundleLang"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.Permission" alias="Permission"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.PermissionRoleRelation" alias="PermissionRoleRelation"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.RankMode" alias="RankMode"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.Recommand" alias="Recommand"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.Role" alias="Role"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.SysConfig" alias="SysConfig"></typeAlias>
+        <typeAlias type="com.quanteng.tland.cms.database.entity.User" alias="User"></typeAlias>
+    </typeAliases>-->
+</configuration>

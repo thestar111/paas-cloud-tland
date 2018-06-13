@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.quanteng.tland.cms.database.mapper.AdMapper">
+
+    <!--广告数据列信息-->
+    <sql id="AD_COLUMN">
+       advertisementId, advertisementName, advertisementUrl, imgUrl, createTime, isValid, advertisementType, targetId, memo
+    </sql>
+
+    <!--广告多语言数据列信息-->
+    <sql id="AD_LANG_COLUMN">
+       id, advertisementId, advertisementName, memo, local
+    </sql>
+
+    <!--广告与多语言信息数据列合同信息-->
+    <sql id="AD_AND_LANG_COLUMN">
+      TA.advertisementId, TL.advertisementName, TA.advertisementUrl, TA.imgUrl, TA.advertisementType, TA.targetId, TL.memo
+    </sql>
+
+    <!--广告列表集合数据列展示-->
+    <sql id="AD_LIST_COLUMN">
+        advertisementId, advertisementName, advertisementUrl, imgUrl, advertisementType, targetId
+    </sql>
+
+    <!-- 增加广告 供平台使用 -->
+    <insert id="add" parameterType="Ad">
+        INSERT INTO T_AD
+        (
+        <include refid="AD_COLUMN"/>
+        )
+        VALUES
+        (#{advertisementId}, #{advertisementName}, #{advertisementUrl}, #{imgUrl}, DATE_FORMAT(NOW(),"%Y-%m-%d %H:%i:%s"), #{isValid},
+        #{advertisementType}, #{targetId}, #{memo})
+    </insert>
+
+    <!-- 增加广告多语言 供平台使用 -->
+    <insert id="addLang" parameterType="AdLang">
+        INSERT INTO T_AD_LANG
+        (
+        <include refid="AD_LANG_COLUMN"/>
+        )
+        VALUES
+        <foreach collection="list" item="ad_lang" separator=",">
+            (#{ad_lang.id}, #{ad_lang.advertisementId}, #{ad_lang.advertisementName}, #{ad_lang.memo},
+            #{ad_lang.local})
+        </foreach>
+    </insert>
+
+    <!-- 修改广告信息 供平台使用 -->
+    <update id="update" parameterType="Ad">
+        UPDATE T_AD
+        <set>
+            <if test="advertisementName != null">
+                advertisementName = #{advertisementName},
+            </if>
+            <if test="advertisementUrl != null">
+                advertisementUrl = #{advertisementUrl},
+            </if>
+            <if test="imgUrl != null">
+                imgUrl = #{imgUrl},
+            </if>
+            <if test="isValid != null">
+                isValid = #{isValid},
+            </if>
+            <if test="advertisementType != null">
+                advertisementType = #{advertisementType},
+            </if>
+            <if test="targetId != null">
+                targetId = #{targetId},
+            </if>
+            <if test="memo != null">
+                memo = #{memo}
+            </if>
+        </set>
+        WHERE advertisementId = #{advertisementId}
+    </update>
+
+    <!-- 修改广告多语言信息 供平台使用 -->
+    <update id="updateAdLang" parameterType="java.util.List">
+        UPDATE T_AD_LANG
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix="advertisementName =case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="item.advertisementName != null">
+                        when advertisementId=#{item.advertisementId} AND local=#{item.local} then #{item.advertisementName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix=" memo =case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="item.memo != null">
+                        when advertisementId=#{item.advertisementId} AND local=#{item.local} then #{item.memo}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        WHERE
+        <foreach collection="list" separator="or" item="item" index="index" >
+            advertisementId=#{item.advertisementId} AND local=#{item.local}
+        </foreach>
+    </update>
+
+    <!-- 根据广告id查询广告 供平台使用 -->
+    <select id="queryAdById" parameterType="String" resultType="Ad">
+		SELECT <include refid="AD_COLUMN"/> FROM T_AD WHERE advertisementId = #{advertisementId}
+	</select>
+
+    <!-- 根据广告id查询广告多语言信息 供平台使用 -->
+    <select id="queryAdLangById" parameterType="String" resultType="AdLang">
+		SELECT <include refid="AD_LANG_COLUMN"/> FROM T_AD_LANG WHERE advertisementId = #{advertisementId}
+	</select>
+
+    <!-- 根据广告id查询广告 供客户端使用 -->
+    <select id="findById" resultType="Ad">
+		SELECT <include refid="AD_AND_LANG_COLUMN"/>
+        FROM T_AD TA INNER JOIN T_AD_LANG TL ON TA.advertisementId = TL.advertisementId
+        WHERE TA.advertisementId=#{advertisementId} AND TL.local=#{local}
+	</select>
+
+    <!-- 分页查询广告  根据多语言查询-->
+    <select id="queryList" parameterType="Map" resultType="Ad">
+        SELECT <include refid="AD_AND_LANG_COLUMN"/> FROM T_AD TA INNER JOIN T_AD_LANG TL ON TA.advertisementId = TL.advertisementId
+        WHERE TL.local=#{language}
+        <if test="advertisementName != NULL">
+            AND TL.advertisementName LIKE concat(#{advertisementName},'%')
+        </if>
+        LIMIT #{start}, #{size}
+    </select>
+
+    <!-- 广告记录总数 -->
+    <select id="qeruyCount" resultType="int" parameterType="Map">
+        SELECT count(1) FROM T_AD TA INNER JOIN T_AD_LANG TL ON TA.advertisementId = TL.advertisementId
+        WHERE 1=1 AND TL.local=#{language}
+        <if test="advertisementName != NULL">
+            AND TL.advertisementName LIKE concat(#{advertisementName},'%')
+        </if>
+    </select>
+
+    <!-- 删除广告 -->
+    <delete id="delete" parameterType="String">
+		DELETE FROM T_AD WHERE advertisementId = #{advertisementId}
+	</delete>
+
+    <!-- 删除广告多语言 -->
+    <delete id="deleteAdLang" parameterType="String">
+		DELETE FROM T_AD_LANG WHERE advertisementId = #{advertisementId}
+	</delete>
+
+    <!--查询启动页广告-->
+    <select id="queryLanuchAd" resultType="Ad">
+        SELECT <include refid="AD_LIST_COLUMN"/> FROM T_AD WHERE advertisementType = 4 AND isValid = 1 LIMIT 0, 1
+    </select>
+
+</mapper>

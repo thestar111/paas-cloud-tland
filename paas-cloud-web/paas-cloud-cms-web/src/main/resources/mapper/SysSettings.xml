@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.quanteng.tland.cms.database.mapper.SysSettingsMapper">
+
+    <resultMap id="PackageMap" type="Bundle">
+        <id column="packageId" property="packageId"/>
+        <result column="packageName" property="packageName"/>
+        <result column="usefulTime" property="usefulTime"/>
+        <result column="price" property="price"/>
+        <result column="memo" property="memo"/>
+        <result column="packageType" property="packageType"/>
+    </resultMap>
+
+    <!--根据configKey查询套餐信息-->
+    <select id="queryPackageConfigValue" resultMap="PackageMap" parameterType="String">
+        SELECT * FROM T_PACKAGE t1 WHERE
+        t1.packageId = (Select configValue from T_CONFIG  t2 where  t2.configKey= #{configKey})
+    </select>
+
+    <!--根据configKey查询配置信息-->
+    <select id="queryConfigValue" resultType="SysConfig" parameterType="Map">
+       select * from T_CONFIG  t1 where  1=1
+        <if test="configKey != null">
+            AND t1.configKey= #{configKey}
+        </if>
+    </select>
+
+    <!-- 修改配置信息-->
+    <update id="modifyConfigValue" parameterType="Map">
+        UPDATE T_CONFIG
+        <set>
+            <if test="configValue != null">
+                configValue = #{configValue}
+            </if>
+        </set>
+        where configKey = #{configKey}
+    </update>
+</mapper>

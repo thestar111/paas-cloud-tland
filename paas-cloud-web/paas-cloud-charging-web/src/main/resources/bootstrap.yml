@@ -1,0 +1,5 @@
+server:
+  port: ${port:28043}
+spring:
+  application:
+    name: tland-charging-service

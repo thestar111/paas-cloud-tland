@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.quanteng.tland.cms.database.mapper.RecommandMapper">
+
+    <!-- 添加游戏推荐数据列 -->
+    <sql id="CHANNEL_COLUMN">
+        id, name, appId, memo
+    </sql>
+
+    <!--添加游戏推荐信息-->
+    <insert id="addRecommand" parameterType="Recommand">
+        INSERT INTO T_APP_RECOMMAND(<include refid="CHANNEL_COLUMN"/>)
+        VALUES (#{id}, #{name}, #{appId}, #{memo})
+    </insert>
+
+    <!--删除游戏推荐信息-->
+    <delete id="delete" parameterType="Integer">
+        DELETE FROM T_APP_RECOMMAND WHERE id = #{id}
+    </delete>
+
+    <!--查询游戏推荐信息-->
+    <select id="queryRecommand" resultType="Recommand">
+        SELECT <include refid="CHANNEL_COLUMN"/> FROM T_APP_RECOMMAND LIMIT 0, 1
+    </select>
+
+</mapper>

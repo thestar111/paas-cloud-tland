@@ -1,0 +1,538 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.quanteng.tland.cms.database.mapper.CatalogRelationMapper">
+    <!--栏目分类关系应用数据列-->
+    <sql id="CATALOG_RELA_COLUMN">
+        id, catalogId, targetId, orderNum, type
+    </sql>
+
+    <!--栏目广告关系数据列信息-->
+    <sql id="CATALOG_ADS_RELA_COLUMN">
+        A.advertisementId, AL.advertisementName, A.advertisementUrl, A.imgUrl, A.advertisementType, A.targetId,
+         R.orderNum AS `order`,R.type, C.catalogId, CL.catalogName, C.catalogIcon, C.orderNum AS position
+    </sql>
+
+    <!--查询营销广告关系数据列信息-->
+    <sql id="PROMOTION_ADS_RELA_COLUMN">
+        A.advertisementId, AL.advertisementName, A.advertisementUrl, A.imgUrl, A.advertisementType,R.orderNum AS `order`, A.targetId
+    </sql>
+
+    <!-- 通用应用数据列查询字段 -->
+    <sql id="APP_COLUMN">
+		SELECT
+			a.appId,
+			al.appName,
+			a.appIcon,
+			a.appRate,
+			a.appVersion,
+			a.appSize,
+			a.appDownload
+	</sql>
+
+    <!-- 关联 栏目应用关联表的查询数据列字段 -->
+    <sql id="APP_CATALOG_COLUMN">
+        <include refid="APP_COLUMN"/>,
+        a.appIconThumb,
+        a.appVersion,
+        c.orderNum AS `order`,
+        c.catalogId,
+        c.type,
+        cl.catalogName,
+        ca.catalogIcon,
+        ca.orderNum AS position
+    </sql>
+
+    <!--栏目关系广告数据列信息-->
+    <sql id="AD_RELATION_COLUMN">
+        a.advertisementId, a.advertisementName, a.advertisementType
+    </sql>
+
+    <!--栏目关系广告数据列信息-->
+    <sql id="CATALOG_AD_RELATION_COLUMN">
+        <include refid="AD_RELATION_COLUMN"/>,
+        c.orderNum AS `order`,
+        c.catalogId,
+        c.type,
+        cl.catalogName,
+        ca.catalogIcon,
+        ca.orderNum AS position
+    </sql>
+
+    <!--栏目信息数据列-->
+    <sql id="CATALOG_DATA_COLUMN">
+        c.catalogId, c.catalogName, c.catalogDesc
+    </sql>
+
+    <!--HOT栏目广告关系数据列信息-->
+    <sql id="CATALOG_ADS_RELATION_COLUMN">
+        a.advertisementId, al.advertisementName,a.advertisementType,c.orderNum AS `order`, c.type, ca.catalogId, cl.catalogName,c.id
+    </sql>
+
+    <!--栏目下的应用信息-->
+    <sql id="CATALOG_APP_DATA_COLUMN">
+        a.appId, al.appName, a.appIcon, a.appRate,a.developer, a.appSize,  a.appIconThumb, a.appVersion, c.orderNum AS `order`, a.appDownload
+    </sql>
+
+    <!--根据栏目编号查询栏目关系类型-->
+    <select id="queryTypeByCatalogId" parameterType="String" resultType="Integer">
+        SELECT distinct C.type FROM T_CATALOG_RELATION C WHERE C.catalogId=#{catalogId}
+    </select>
+
+    <!-- 根据营销栏目Id查询关联广告信息 并且根据排序优先级别，排序，升序-->
+    <select id="queryAdsByCatalogId" resultType="CatalogAdsRela" parameterType="Map">
+        SELECT
+        <include refid="CATALOG_ADS_RELATION_COLUMN"/>
+        FROM T_AD a, T_CATALOG_RELATION c, T_CATALOG ca, T_CATALOG_LANG cl, T_AD_LANG al
+        WHERE a.advertisementId = c.targetId
+        AND c.catalogId = ca.catalogId
+        AND c.catalogId = cl.catalogId
+        AND a.advertisementId = al.advertisementId
+        <if test="catalogId != null">
+            AND c.catalogId = #{catalogId}
+        </if>
+        <if test="name != null">
+            AND a.advertisementName LIKE concat(#{name}, '%')
+        </if>
+        <if test="language != null">
+            AND al.local = #{language}
+            AND cl.local = #{language}
+        </if>
+        ORDER BY c.orderNum ASC
+        <if test="start != null and size!= null">
+            LIMIT #{start}, #{size}
+        </if>
+    </select>
+
+    <!-- 根据营销栏目Id查询关联广告总数 信息 并且根据排序优先级别，排序，升序-->
+    <select id="queryAdsCountByCatalogId" resultType="Integer" parameterType="Map">
+        SELECT COUNT(1)
+        FROM T_AD a, T_CATALOG_RELATION c, T_CATALOG ca, T_CATALOG_LANG cl, T_AD_LANG al
+        WHERE a.advertisementId = c.targetId
+        AND c.catalogId = ca.catalogId
+        AND c.catalogId = cl.catalogId
+        AND a.advertisementId = al.advertisementId
+        <if test="catalogId != null">
+            AND c.catalogId = #{catalogId}
+        </if>
+        <if test="name != null">
+            AND a.advertisementName LIKE concat(#{name}, '%')
+        </if>
+        <if test="language != null">
+            AND al.local = #{language}
+            AND cl.local = #{language}
+        </if>
+    </select>
+
+    <!--查询栏目关系下的栏目信息-->
+    <select id="queryCatalogByCatalogId" resultType="ParentCatalog" parameterType="Map">
+        SELECT R.catalogId AS parentCatalogId,  C.catalogId, TL.catalogName, C.catalogIcon, R.type,R.id,R.orderNum
+        FROM T_CATALOG_RELATION R, T_CATALOG C, T_CATALOG_LANG TL
+        WHERE R.targetId=C.catalogId AND C.catalogId=TL.catalogId AND TL.`local`=#{language} AND R.catalogId=#{catalogId}
+    </select>
+
+    <!-- 根据营销栏目Id查询关联应用 并且根据排序优先级别，排序，升序-->
+    <select id="queryAppByCatalogId" resultType="CatalogAppRela" parameterType="Map">
+        <include refid="APP_CATALOG_COLUMN"/>
+        FROM T_APP a, T_CATALOG_RELATION c, T_CATALOG ca, T_CATALOG_LANG cl, T_APP_LANG al
+        WHERE a.appId = c.targetId
+        AND c.catalogId = ca.catalogId
+        AND c.catalogId = cl.catalogId
+        AND a.appId = al.appId
+        AND a.appStatus = '0'
+        <if test="catalogId != null">
+            AND c.catalogId = #{catalogId}
+        </if>
+        <if test="name != null">
+            AND a.appName LIKE concat(#{name}, '%')
+        </if>
+        <if test="language != null">
+            AND al.local = #{language}
+            AND cl.local = #{language}
+        </if>
+        ORDER BY c.orderNum ASC
+        <if test="start != null and size!= null">
+            LIMIT #{start}, #{size}
+        </if>
+    </select>
+
+    <!-- 查询根据营销栏目Id查询关联应用总数 -->
+    <select id="queryAppCountByCatalogId" resultType="int" parameterType="Map">
+        SELECT COUNT(1) FROM T_CATALOG_RELATION c, T_APP a, T_CATALOG ca
+        WHERE c.targetId = a.appId AND c.catalogId = ca.catalogId
+        <if test="catalogId != null">
+            AND c.catalogId = #{catalogId}
+        </if>
+        <if test="appName != null">
+            AND a.appName LIKE concat(#{appName}, '%')
+        </if>
+    </select>
+
+    <!-- 根据营销栏目Id查询不在栏目应用关联表中的app -->
+    <select id="queryAppNotInCatalogId" resultType="CatalogAppRela" parameterType="Map">
+        <include refid="APP_COLUMN"/>,a.developer
+        FROM T_APP a, T_APP_LANG al
+        WHERE
+        NOT EXISTS (
+        SELECT DISTINCT
+        c.targetId
+        FROM
+        T_CATALOG_RELATION c
+        WHERE c.catalogId = #{catalogId} AND a.appId = c.targetId AND c.type = #{type}
+
+        )
+        AND al.appId = a.appId AND a.appStatus='0'
+        <if test="language != null">
+            AND al.local = #{language}
+        </if>
+        <if test="name != null">
+            AND a.appName LIKE concat(#{name}, '%')
+        </if>
+        <if test="start != null and size!= null">
+            LIMIT #{start}, #{size}
+        </if>
+    </select>
+
+    <!-- 查询根据营销栏目Id查询不在栏目应用关联表中的应用总数 -->
+    <select id="queryAppCountNotInCatalogId" resultType="int" parameterType="Map">
+        SELECT COUNT(1)
+        FROM
+        T_APP a,
+        T_APP_LANG al
+        WHERE
+        NOT EXISTS (
+        SELECT DISTINCT
+        c.targetId
+        FROM
+        T_CATALOG_RELATION c
+        WHERE c.catalogId = #{catalogId} AND a.appId = c.targetId AND c.type = #{type}
+        )
+        AND al.appId = a.appId AND a.appStatus='0'
+        <if test="language != null">
+            AND al.local = #{language}
+        </if>
+        <if test="name != null">
+            AND a.appName LIKE concat(#{name}, '%')
+        </if>
+    </select>
+
+    <!--查询不在栏目中的广告信息-->
+    <select id="queryAdsNotInCatalog" resultType="Ad" parameterType="Map">
+        SELECT
+        <include refid="AD_RELATION_COLUMN"/>
+        FROM T_AD a, T_AD_LANG al
+        WHERE
+        NOT EXISTS (
+        SELECT DISTINCT c.targetId
+        FROM
+        T_CATALOG_RELATION c
+        WHERE c.catalogId = #{catalogId} AND a.advertisementId = c.targetId
+        <if test="type != null">
+            AND c.type = #{type}
+        </if>
+        )
+        AND al.advertisementId = a.advertisementId
+        <if test="language != null">
+            AND al.local = #{language}
+        </if>
+        <if test="name != null">
+            AND a.advertisementName LIKE concat(#{name}, '%')
+        </if>
+        <if test="start != null and size!= null">
+            LIMIT #{start}, #{size}
+        </if>
+    </select>
+
+    <!--查询不在栏目中的广告信息总数-->
+    <select id="queryAdsCountNotInCatalog" resultType="int" parameterType="Map">
+        SELECT COUNT(1) FROM T_AD a, T_AD_LANG al
+        WHERE
+        NOT EXISTS (
+        SELECT DISTINCT c.targetId
+        FROM
+        T_CATALOG_RELATION c
+        WHERE c.catalogId = #{catalogId} AND a.advertisementId = c.targetId
+        <if test="type != null">
+            AND c.type = #{type}
+        </if>
+        )
+        AND al.advertisementId = a.advertisementId
+        <if test="language != null">
+            AND al.local = #{language}
+        </if>
+        <if test="name != null">
+            AND a.advertisementName LIKE concat(#{name}, '%')
+        </if>
+    </select>
+
+    <!--查询不在栏目中的栏目信息-->
+    <select id="queryCatalogNotInCatalog" resultType="Catalog" parameterType="Map">
+        SELECT
+        <include refid="CATALOG_DATA_COLUMN"/>
+        FROM T_CATALOG c, T_CATALOG_LANG cl
+        WHERE
+        NOT EXISTS (
+        SELECT DISTINCT R.targetId
+        FROM
+        T_CATALOG_RELATION R
+        WHERE R.catalogId = #{catalogId} AND c.catalogId = R.targetId
+        <if test="type != null">
+            AND R.type = #{type}
+        </if>
+        )
+        AND cl.catalogId = c.catalogId
+        AND c.catalogType = 1
+        AND c.nodeType = 1
+        <if test="language != null">
+            AND cl.local = #{language}
+        </if>
+        <if test="name != null">
+            AND c.catalogName LIKE concat(#{name}, '%')
+        </if>
+        <if test="start != null and size!= null">
+            LIMIT #{start}, #{size}
+        </if>
+    </select>
+
+    <!--查询不在栏目下的栏目总数-->
+    <select id="queryCatalogCountNotInCatalog" resultType="int" parameterType="Map">
+        SELECT COUNT(1) FROM T_CATALOG c, T_CATALOG_LANG cl
+        WHERE
+        NOT EXISTS (
+        SELECT DISTINCT R.targetId
+        FROM
+        T_CATALOG_RELATION R
+        WHERE R.catalogId = #{catalogId} AND c.catalogId = R.targetId
+        <if test="type != null">
+            AND R.type = #{type}
+        </if>
+        )
+        AND cl.catalogId = c.catalogId
+        AND c.catalogType = 1
+        AND c.nodeType = 1
+        <if test="language != null">
+            AND cl.local = #{language}
+        </if>
+        <if test="name != null">
+            AND c.catalogName LIKE concat(#{name}, '%')
+        </if>
+    </select>
+
+    <!-- 配置营销栏目应用关系 -->
+    <insert id="addCatalogRelation" parameterType="CatalogRelation">
+        INSERT INTO T_CATALOG_RELATION
+        (
+        <include refid="CATALOG_RELA_COLUMN"/>
+        )
+        VALUES
+        <foreach collection="list" separator="," item="item">
+            (#{item.id}, #{item.catalogId}, #{item.targetId}, #{item.orderNum}, #{item.type})
+        </foreach>
+    </insert>
+
+    <!-- 获取营销栏目应用关系 最大排序优先值 -->
+    <select id="getMaxRankPriority" resultType="Integer" parameterType="String">
+        SELECT IFNULL(MAX(orderNum), 0) FROM T_CATALOG_RELATION c WHERE c.catalogId = #{catalogId}
+    </select>
+
+    <!-- 更新排序优先级字段 -->
+    <update id="modifyCatalogRelationRank" parameterType="java.util.List">
+        UPDATE T_CATALOG_RELATION
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix=" orderNum =case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="item.orderNum != null">
+                        when id=#{item.id} then #{item.orderNum}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        WHERE
+        <foreach collection="list" separator="or" item="item" index="index">
+            id=#{item.id}
+        </foreach>
+    </update>
+
+    <!-- 删除栏目的关联关系 -->
+    <delete id="delCatalogRelation" parameterType="String">
+        DELETE FROM T_CATALOG_RELATION WHERE targetId = #{targetId}
+    </delete>
+
+    <!-- 根据 pushId 查找对应关系 -->
+    <select id="queryCatalogIdById" parameterType="String" resultType="String">
+        select catalogId from T_CATALOG_RELATION WHERE id = #{id}
+    </select>
+
+    <!-- 根据栏目id和targetId删除对应关系 -->
+    <delete id="deleteCatalogRelaById">
+		DELETE FROM T_CATALOG_RELATION WHERE catalogId = #{catalogId} AND targetId = #{targetId}
+	</delete>
+
+    <!--获取在同个栏目中 排序前置位应用-->
+    <select id="queryBeforeTargetRelation" resultType="CatalogRelation">
+        SELECT id, orderNum FROM T_CATALOG_RELATION
+        WHERE orderNum &lt;= #{orderNum} AND catalogId = #{catalogId} ORDER BY orderNum
+    </select>
+
+    <!-- 根据pushId 查询 order_num -->
+    <select id="getOrderNumById" parameterType="String" resultType="Integer">
+        SELECT c.orderNum FROM T_CATALOG_RELATION c WHERE c.id = #{id}
+    </select>
+
+    <!--查询指定栏目类型和栏目id ，栏目下的所有应用-->
+    <select id="queryAppsByCatalogIdAndType" parameterType="Map" resultType="CatalogAppRela">
+        SELECT
+        ta.appId,
+        ta.appName,
+        ta.appIccon,
+        ta.appRate,
+        ta.appSize,
+        ta.appVersion,
+        ta.developer,
+        ta.content,
+        ta.appDownload,
+        ta.catalogId,
+        tc.id,
+        tc.orderNum,
+        ca.catalogName
+        FROM
+        T_APP ta,
+        T_CATALOG_RELATION tc,
+        T_CATALOG ca
+        WHERE ca.catalogType = #{catalogType}
+        AND ta.appStatus = '0'
+        AND ca.catalogId = #{catalogId}
+        AND ta.appId = tc.targetId
+        AND tc.catalogId = ca.catalogid
+        ORDER BY orderNum ASC
+        <if test="start != null and size!= null">
+            LIMIT ${start}, ${size}
+        </if>
+    </select>
+
+    <!-- 删除栏目和应用的关联关系 -->
+    <delete id="deleteByCatalog" parameterType="String">
+        DELETE FROM T_CATALOG_RELATION WHERE catalogId = #{catalogId}
+    </delete>
+
+    <!--根据营销类型查询应用目录编号 去除重复的-->
+    <select id="queryPromotionCatalogId" resultType="String" parameterType="Integer">
+        SELECT DISTINCT R.catalogId FROM T_CATALOG_RELATION R WHERE R.type=#{type}
+    </select>
+
+    <!--查询首页营销广告信息-->
+    <select id="queryPromotionAdByCatalogId" resultType="CatalogAdsRela" parameterType="Map">
+        SELECT
+        <include refid="CATALOG_ADS_RELA_COLUMN"/>
+        FROM T_CATALOG_RELATION R, T_AD A, T_CATALOG C,T_CATALOG_LANG CL,T_AD_LANG AL
+        WHERE R.targetId=A.advertisementId
+        AND C.catalogId=R.catalogId
+        AND CL.catalogId=R.catalogId
+        AND AL.advertisementId=A.advertisementId
+        AND A.isValid = '1'
+        AND R.catalogId=#{catalogId}
+        <if test="language != null">
+            AND CL.local=#{language}
+            AND AL.local=#{language}
+        </if>
+        ORDER BY R.orderNum
+    </select>
+
+    <!--根据营销类型查询营销广告信息-->
+    <select id="queryPromotionAdByType" resultType="CatalogAdsRela" parameterType="Map">
+        SELECT
+        <include refid="PROMOTION_ADS_RELA_COLUMN"/>
+        FROM T_CATALOG_RELATION R, T_AD A,T_AD_LANG AL
+        WHERE R.targetId=A.advertisementId
+        AND A.advertisementId=AL.advertisementId
+        AND R.type=#{type}
+        <if test="language != null">
+            AND AL.local=#{language}
+        </if>
+        ORDER BY R.orderNum
+    </select>
+
+    <!--根据营销类型查询营销栏目热门标签信息-->
+    <select id="queryHotCatalogTag" resultType="Catalog" parameterType="String">
+        SELECT C.catalogId, TL.catalogName, C.catalogIcon FROM T_CATALOG_RELATION R, T_CATALOG C, T_CATALOG_LANG TL
+          WHERE R.catalogId=C.catalogId AND R.type=4 AND C.catalogId=TL.catalogId AND TL.`local`=#{language} LIMIT 0, 1;
+    </select>
+
+    <!--根据营销类型查询营销栏目热门标签下的栏目信息-->
+    <select id="queryHotTagsByCatalogId" resultType="Catalog">
+       SELECT C.catalogId, TL.catalogName, C.catalogIcon FROM T_CATALOG_RELATION R, T_CATALOG C, T_CATALOG_LANG TL
+        WHERE R.targetId=C.catalogId AND C.catalogId=TL.catalogId AND TL.`local`=#{language} AND R.catalogId=#{catalogId};
+    </select>
+
+    <!--查询栏目下的orderNum最大值-->
+    <select id="queryMaxOrderByCatalogId" resultType="Integer" parameterType="String">
+        SELECT IFNULL(MAX(R.orderNum),0) FROM T_CATALOG_RELATION R WHERE R.catalogId=#{catalogId}
+    </select>
+
+    <!-- 根据应用栏目编号查询该栏目下的应用信息 供APP客户端使用 -->
+    <select id="queryAppByAppCatalogId" resultType="CatalogAppRela" parameterType="Map">
+        SELECT <include refid="CATALOG_APP_DATA_COLUMN"/>
+        FROM T_APP a, T_CATALOG_RELATION c, T_APP_LANG al
+        WHERE a.appId = c.targetId
+        AND a.appId = al.appId
+        <if test="catalogId != null">
+            AND c.catalogId = #{catalogId}
+        </if>
+        <if test="language != null">
+            AND al.local = #{language}
+        </if>
+        ORDER BY c.orderNum ASC
+        <if test="start != null and size!= null">
+            LIMIT #{start}, #{size}
+        </if>
+    </select>
+
+    <!-- 根据栏目Id查询关联应用 供market应用栏目和营销栏目的配置查询-->
+    <select id="queryConfigAppByCatalogId" resultType="CatalogAppRela" parameterType="Map">
+        SELECT a.appId, al.appName, a.appIcon, a.appRate,a.developer, a.appSize,  a.appIconThumb, a.appVersion,
+        c.orderNum AS `order`,  c.catalogId, c.type, cl.catalogName, ca.catalogIcon, c.id
+        FROM T_APP a, T_CATALOG_RELATION c, T_CATALOG ca, T_CATALOG_LANG cl, T_APP_LANG al
+        WHERE a.appId = c.targetId
+        AND c.catalogId = ca.catalogId
+        AND c.catalogId = cl.catalogId
+        AND a.appId = al.appId
+        <if test="catalogId != null">
+            AND c.catalogId = #{catalogId}
+        </if>
+        <if test="name != null">
+            AND a.appName LIKE concat(#{name}, '%')
+        </if>
+        <if test="language != null">
+            AND al.local = #{language}
+            AND cl.local = #{language}
+        </if>
+        <if test="type != null">
+            AND c.type = #{type}
+        </if>
+        ORDER BY c.orderNum ASC
+        <if test="start != null and size!= null">
+            LIMIT #{start}, #{size}
+        </if>
+    </select>
+
+    <!--  根据栏目Id查询关联应用总数 供market应用栏目和营销栏目的配置查询 -->
+    <select id="queryConfigAppCountByCatalogId" resultType="int" parameterType="Map">
+        SELECT COUNT(1) FROM T_CATALOG_RELATION c, T_APP a, T_CATALOG ca
+        WHERE c.targetId = a.appId AND c.catalogId = ca.catalogId
+        <if test="catalogId != null">
+            AND c.catalogId = #{catalogId}
+        </if>
+        <if test="appName != null">
+            AND a.appName LIKE concat(#{appName}, '%')
+        </if>
+    </select>
+
+    <!-- 删除广告、栏目或应用状态变更非上线状态是删除其配置的关联关系 -->
+    <delete id="removeRelation"  parameterType="java.util.List">
+        DELETE from T_CATALOG_RELATION
+        where targetId IN
+        <foreach item="targetId" collection="list" open="(" separator="," close=")">
+            #{targetId}
+        </foreach>
+    </delete>
+</mapper>

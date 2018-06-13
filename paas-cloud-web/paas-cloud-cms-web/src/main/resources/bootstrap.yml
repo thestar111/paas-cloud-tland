@@ -1,0 +1,5 @@
+server:
+  port: ${port:28044}
+spring:
+  application:
+    name: tland-cms-service

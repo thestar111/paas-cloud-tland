@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.quanteng.tland.cms.database.mapper.ChannelMapper">
+
+    <!-- 增加渠道 -->
+    <insert id="addChannel" parameterType="Channel">
+		INSERT INTO T_CHANNEL
+			(channelId, channelName, linkType, linkAddress, catalogId, appName)
+		VALUES
+			(#{channelId}, #{channelName}, #{linkType}, #{linkAddress}, #{catalogId}, #{appName})
+	</insert>
+
+    <!-- 修改渠道 -->
+    <update id="updateChannel" parameterType="Channel">
+        UPDATE T_CHANNEL
+        <set>
+            <if test="channelName != null">
+                channelName = #{channelName},
+            </if>
+            <if test="linkType != null">
+                linkType = #{linkType},
+            </if>
+            <if test="linkAddress != null">
+                linkAddress = #{linkAddress},
+            </if>
+            <if test="catalogId != null">
+                catalogId = #{catalogId},
+            </if>
+            <if test="appName != null">
+                appName = #{appName}
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据id查询渠道 -->
+    <select id="queryChannelById" parameterType="String" resultType="Channel">
+		SELECT * FROM T_CHANNEL WHERE id = #{channelId}
+	</select>
+
+    <!-- 分页查询渠道 -->
+    <select id="queryChannelList" parameterType="Map" resultType="Channel">
+        SELECT * FROM T_CHANNEL WHERE 1=1
+        <if test="channelName != NULL">
+            AND channelName LIKE concat(#{channelName},'%')
+        </if>
+        <if test="linkType != NULL">
+            AND linkType = #{linkType}
+        </if>
+        limit ${start}, ${size}
+    </select>
+
+    <!-- 渠道记录总数 -->
+    <select id="queryCountChannel" resultType="int" parameterType="Map">
+        SELECT count(1) FROM T_CHANNEL WHERE 1=1
+        <if test="channelName != NULL">
+            AND channelName LIKE concat(#{channelName},'%')
+        </if>
+        <if test="linkType != NULL">
+            AND linkType = #{linkType}
+        </if>
+    </select>
+
+    <!-- 删除渠道 -->
+    <delete id="deleteChannel" parameterType="String">
+		DELETE FROM T_CHANNEL WHERE id = #{channelId}
+	</delete>
+</mapper>

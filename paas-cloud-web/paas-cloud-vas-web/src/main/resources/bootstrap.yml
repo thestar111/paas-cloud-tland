@@ -1,0 +1,42 @@
+server:
+  port: ${port:28045}
+spring:
+  application:
+    name: tland-vas-service
+machine:
+  name: tland-vas-service-1
+# 开启Hystrix服务降级，默认关闭
+feign:
+  hystrix:
+    enabled: true
+  compression:
+    request:
+      mime-types: text/xml, application/xml, application/json
+      min-request-size: 2048
+# 配置是Hystrix的超时时间改为5秒  (默认为1秒)
+hystrix:
+  threadpool:
+    default:
+      coreSize: 100
+  command:
+    default:
+      execution:
+        timeout:
+          enabled: true
+        isolation:
+          thread:
+            timeoutInMilliseconds: 50000
+# 设置Ribbon的超时时间
+ribbon:
+  ConnectTimeout: 500000
+  ReadTimeout: 500000
+security:
+  token:
+    # 过期时间(分钟)
+    expirationTime: 120
+    # 颁布TOKEN签发者
+    issuer: QUANTENG@TLAND
+    # 签名密钥
+    signingKey: quanteng@tland@2018
+    # 刷新TOKEN过期时间(分钟)
+    refreshExpTime: 1440

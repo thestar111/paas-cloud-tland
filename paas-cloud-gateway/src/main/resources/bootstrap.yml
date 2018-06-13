@@ -1,0 +1,57 @@
+spring:
+  application:
+    name: tland-api-gateway
+server:
+  port: ${port:28040}
+zuul:
+  host:
+    max-total-connections: 800
+    max-per-route-connections: 100
+  routes:
+    # 用户服务
+    users:
+      path: /user/**
+      serviceId: tland-user-service
+      # 默认跳过路径前缀， 设置为 false  不让跳过
+      stripPrefix: false
+    # 编排服务
+    vas:
+      path: /vas/**
+      serviceId: tland-vas-service
+      stripPrefix: false
+    # 内容服务
+    cms:
+      path: /cms/**
+      serviceId: tland-cms-service
+      stripPrefix: false
+  # 路径统一配置
+  prefix: /api
+  # 接口限流配置
+  ratelimit:
+    key-prefix: tland-ratelimite
+    enabled: true
+    # 存储方式 (CONSUL, REDIS, JPA, BUCKET4J_JCACHE, BUCKET4J_HAZELCAST, BUCKET4J_INFINISPAN, BUCKET4J_IGNITE, IN_MEMORY)
+    repository: IN_MEMORY
+    behind-proxy: true
+    # 自定义限流策略
+    policies:
+      # 服务路由名称
+      vas:
+        # 单位时间内允许访问的个数
+        limit: 10000
+        # 单位时间内允许访问的总时间 (秒)
+        quota: 6000
+        # 单位时间设置(秒)
+        refresh-interval: 30
+        # 限流方式 - user
+        type:
+          - origin
+          - url
+# 配置是Hystrix的超时时间改为5秒  (默认为1秒)
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 30000

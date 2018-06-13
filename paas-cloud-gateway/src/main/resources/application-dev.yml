@@ -1,0 +1,24 @@
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:28761/eureka/
+    healthcheck:
+      enable: true
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+    # 续约更新时间间隔（默认30秒）
+    lease-renewal-interval-in-seconds: 10
+    # 续约到期时间（默认90秒）
+    lease-expiration-duration-in-seconds: 30
+    hostname: localhost
+logging:
+  config: classpath:log4j-dev.xml
+security:
+  token:
+    expirationTime: 7200
+    issuer: QUANTENG@TLAND
+    signingKey: quanteng@tland@2018
+    refreshExpTime: 120000
+  keys:
+    secretId: RCIDc5756c536a394dd18e459dc0a17b3b78
+    secretKey: c9b98cf884d641beaa03756beb067ce0

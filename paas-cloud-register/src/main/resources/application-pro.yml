@@ -1,0 +1,30 @@
+eureka:
+  instance:
+    hostname: ${spring.cloud.client.ipAddress}
+    # 注册到Eureka服务端的唯一的实例ID
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+    prefer-ip-address: true
+  client:
+    # 是否向 Eureka 注册服务。该应用为服务注册中心，不需要自注册，设置为 false
+    register-with-eureka: false
+    # 是否检索服务。该应用为服务注册中心，职责为注册和发现服务，无需检索服务，设置为 false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+    healthcheck:
+      enable: true
+  dashboard:
+    enabled: true
+    # 配置服务注册中心地址虚拟路径
+    path: /quanteng
+  # server:
+    # 关闭Eureka的自我保护模式
+    # enable-self-preservation: false
+    # 清理间隔时间(默认：60 * 1000)
+    # eviction-interval-timer-in-ms: 30000
+spring:
+  cloud:
+    client:
+      ipAddress: localhost
+logging:
+  config: classpath:log4j-pro.xml

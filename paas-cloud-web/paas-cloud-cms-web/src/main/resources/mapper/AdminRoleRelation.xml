@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.quanteng.tland.cms.database.mapper.AdminRoleRelationMapper">
+
+    <resultMap id="AdminRoleRelationMap" type="AdminRoleRelation">
+        <id property="id" column="id"/>
+        <result column="adminId" property="adminId"/>
+        <result column="roleId" property="roleId"/>
+        <result column="memo" property="memo"/>
+    </resultMap>
+
+    <!--管理员角色数据列-->
+    <sql id="ADMIN_ROLE_COLUMN">
+        id, adminId, roleId
+    </sql>
+
+    <!--添加管理员角色关系-->
+    <insert id="add" parameterType="AdminRoleRelation">
+        INSERT INTO
+         T_ADMIN_ROLE_RELATION(id, adminId, roleId, memo)
+        VALUES
+         (#{id}, #{adminId}, #{roleId}, #{memo})
+    </insert>
+
+    <!--根据管理员编号查询角色关系-->
+    <select id="findByAdminId" parameterType="String" resultMap="AdminRoleRelationMap">
+        SELECT <include refid="ADMIN_ROLE_COLUMN"/> FROM T_ADMIN_ROLE_RELATION WHERE adminId = #{adminId}
+    </select>
+
+</mapper>

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.quanteng.tland.cms.database.mapper.BundleAppOrCatalogRelationMapper">
+
+    <!-- 套餐与App或栏目关联关系结果集 -->
+    <resultMap type="BundleAppOrCatalogRelation" id="BundleAppOrCatalogRelationResultMap">
+        <id column="ID" property="id"/>
+        <result column="PACKAGEID" property="packageId"/>
+        <result column="TYPE" property="type"/>
+        <result column="CATALOGID" property="catalogId"/>
+        <result column="APPID" property="appId"/>
+        <result column="MEMO" property="memo"/>
+        <result column="app_name" property="appName"/>
+        <result column="app_column" property="catalogId"/>
+        <result column="CATALOGNAME" property="catalogName"/>
+    </resultMap>
+
+    <!-- 批量新增套餐应用或栏目关系 -->
+    <insert id="batchAdd" parameterType="BundleAppOrCatalogRelation">
+        INSERT INTO T_PACKAGE_APP_CATALOG_RELATION
+        (ID,PACKAGEID,TYPE,CATALOGID,APPID,MEMO)
+        VALUES
+        <foreach collection="list" item="bundleAppOrCatalogRelation" separator=",">
+            (#{bundleAppOrCatalogRelation.id},#{bundleAppOrCatalogRelation.packageId},#{bundleAppOrCatalogRelation.type},#{bundleAppOrCatalogRelation.catalogId},#{bundleAppOrCatalogRelation.appId},#{bundleAppOrCatalogRelation.memo})
+        </foreach>
+    </insert>
+
+    <!-- 查询栏目或者应用是否在套餐中 -->
+    <select id="queryAppOrCatalogIsInBundle" parameterType="Map" resultType="int">
+        SELECT COUNT(1)
+        FROM T_PACKAGE_APP_CATALOG_RELATION
+        WHERE 1=1
+        <if test="packageId != null">
+            AND PACKAGEID = #{packageId}
+        </if>
+        <if test="catalogId != null and appId != null">
+            AND ( CATALOGID = #{catalogId} OR APPID = #{appId} )
+        </if>
+    </select>
+
+    <!-- 分页查询套餐中的应用 -->
+    <select id="queryAppInBundle" parameterType="Map" resultMap="BundleAppOrCatalogRelationResultMap">
+        SELECT ta.ID,ta.PACKAGEID,ta.TYPE,ta.CATALOGID,ta.APPID,ta.MEMO,TL.app_name,ta.app_column,CL.CATALOGNAME FROM
+        (
+        SELECT t.ID,t.PACKAGEID,t.TYPE,t.CATALOGID,t.APPID,t.MEMO,a.app_name,a.app_column FROM
+        T_PACKAGE_APP_CATALOG_RELATION t
+        INNER JOIN T_APP a ON t.APPID = a.app_id
+        WHERE 1 = 1
+        <if test="packageId != null">
+            AND t.PACKAGEID = #{packageId}
+        </if>
+        <if test="appName != null">
+            AND a.app_name LIKE concat(#{appName},'%')
+        </if>
+        <if test="appColumn != null">
+            AND a.app_column =(#{appColumn})
+        </if>
+        ) AS ta
+        INNER JOIN T_CATALOG c ON ta.app_column = c.CATALOGID
+        INNER JOIN T_APP_LANG TL ON TL.app_id=ta.appid
+        INNER JOIN T_CATALOG_LANG CL ON c.CATALOGID=CL.CATALOGID
+        WHERE TL.LOCAL=#{language} AND CL.LOCAL=#{language}
+        <if test="start != null and size != null ">
+            LIMIT ${start}, ${size}
+        </if>
+    </select>
+
+    <!-- 查询套餐中的应用总数 -->
+    <select id="countAppInBundle" parameterType="Map" resultType="int">
+        SELECT COUNT(1) FROM T_PACKAGE_APP_CATALOG_RELATION t
+        INNER JOIN T_APP a ON t.APPID = a.app_id
+        WHERE 1 = 1
+        <if test="packageId != null">
+            AND t.PACKAGEID = #{packageId}
+        </if>
+        <if test="appName != null">
+            AND a.app_name LIKE concat(#{appName},'%')
+        </if>
+        <if test="appColumn != null">
+            AND a.app_column =(#{appColumn})
+        </if>
+    </select>
+
+    <!-- 查询套餐中的栏目 -->
+    <select id="queryCatalogInBundle" parameterType="Map" resultMap="BundleAppOrCatalogRelationResultMap">
+        SELECT t.ID,t.PACKAGEID,t.TYPE,t.CATALOGID,t.APPID,t.MEMO,CL.CATALOGNAME FROM T_PACKAGE_APP_CATALOG_RELATION t
+        INNER JOIN T_CATALOG c ON t.CATALOGID = c.CATALOGID
+        INNER JOIN T_CATALOG_LANG CL ON c.CATALOGID=CL.CATALOGID
+        WHERE CL.LOCAL=#{language}
+        <if test="packageId != null">
+            AND t.PACKAGEID = #{packageId}
+        </if>
+        <if test="start != null and size != null ">
+            LIMIT ${start}, ${size}
+        </if>
+    </select>
+
+    <!-- 查询套餐中的栏目总数 -->
+    <select id="countCatalogInBundle" parameterType="Map" resultType="int">
+        SELECT COUNT(1) FROM T_PACKAGE_APP_CATALOG_RELATION t
+        INNER JOIN T_CATALOG c ON t.CATALOGID = c.CATALOGID
+        WHERE 1 = 1
+        <if test="packageId != null">
+            AND t.PACKAGEID = #{packageId}
+        </if>
+    </select>
+
+    <!-- 批量删除套餐应用或栏目关系 -->
+    <delete id="batchDelete" parameterType="String">
+        DELETE FROM T_PACKAGE_APP_CATALOG_RELATION
+        WHERE ID IN (
+        <foreach collection="list" item="id" separator=",">
+            #{id}
+        </foreach>
+        )
+    </delete>
+
+    <!-- 分页查询不在套餐中的应用 -->
+    <select id="queryAppNotInBundle" parameterType="Map" resultMap="BundleAppOrCatalogRelationResultMap">
+        SELECT
+        a.app_id AS APPID,TL.app_name,a.app_column,CL.CATALOGNAME FROM T_APP a
+        INNER JOIN T_CATALOG c ON a.app_column = c.CATALOGID
+        INNER JOIN T_APP_LANG TL ON TL.app_id=a.app_id
+        INNER JOIN T_CATALOG_LANG CL ON c.CATALOGID=CL.CATALOGID
+        WHERE a.app_status = "0"
+        AND TL.local=#{language} AND CL.LOCAL=#{language}
+        <if test="appName != null">
+            AND a.app_name LIKE concat(#{appName},'%')
+        </if>
+        <if test="appColumn != null">
+            AND a.app_column =(#{appColumn})
+        </if>
+        AND NOT EXISTS (
+        SELECT tpacr.CATALOGID,tpacr.APPID FROM T_PACKAGE_APP_CATALOG_RELATION tpacr WHERE 1 = 1
+        <if test="packageId != NULL">
+            AND tpacr.PACKAGEID = #{packageId}
+        </if>
+        AND ( a.app_column = tpacr.CATALOGID OR a.app_id = tpacr.APPID)
+        )
+        <if test="start != NULL and size != NULL ">
+            LIMIT ${start}, ${size}
+        </if>
+    </select>
+
+    <!-- 查询不在套餐中的应用总数 -->
+    <select id="countAppNotInBundle" parameterType="Map" resultType="int">
+        SELECT COUNT(1) FROM T_APP a
+        INNER JOIN T_CATALOG c ON a.app_column = c.CATALOGID
+        WHERE a.app_status = "0"
+        <if test="appName != null">
+            AND a.app_name LIKE concat(#{appName},'%')
+        </if>
+        <if test="appColumn != null">
+            AND a.app_column =(#{appColumn})
+        </if>
+        AND NOT EXISTS (
+        SELECT tpacr.CATALOGID,tpacr.APPID FROM T_PACKAGE_APP_CATALOG_RELATION tpacr WHERE 1 = 1
+        <if test="packageId != NULL">
+            AND tpacr.PACKAGEID = #{packageId}
+        </if>
+        AND ( a.app_column = tpacr.CATALOGID OR a.app_id = tpacr.APPID)
+        )
+    </select>
+
+    <!-- 查询不在套餐中的栏目 -->
+    <select id="queryCatalogNotInBundle" parameterType="Map" resultMap="BundleAppOrCatalogRelationResultMap">
+        SELECT c.CATALOGID,CL.CATALOGNAME FROM T_CATALOG c
+        INNER JOIN T_CATALOG_LANG CL ON c.CATALOGID=CL.CATALOGID
+        WHERE c.CATALOGTYPE = "1"
+        AND CL.LOCAL=#{language}
+        AND NOT EXISTS (
+        SELECT tpacr.CATALOGID FROM T_PACKAGE_APP_CATALOG_RELATION tpacr WHERE 1 = 1
+        <if test="packageId != NULL">
+            AND tpacr.PACKAGEID = #{packageId}
+        </if>
+        AND c.CATALOGID = tpacr.CATALOGID
+        )
+        <if test="start != NULL and size != NULL ">
+            LIMIT ${start}, ${size}
+        </if>
+    </select>
+
+    <!-- 查询不在套餐中的栏目总数  -->
+    <select id="countCatalogNotInBundle" parameterType="Map" resultType="int">
+        SELECT COUNT(1) FROM T_CATALOG c
+        WHERE c.CATALOGTYPE = "1"
+        AND NOT EXISTS (
+        SELECT tpacr.CATALOGID FROM T_PACKAGE_APP_CATALOG_RELATION tpacr WHERE 1 = 1
+        <if test="packageId != NULL">
+            AND tpacr.PACKAGEID = #{packageId}
+        </if>
+        AND c.CATALOGID = tpacr.CATALOGID
+        )
+    </select>
+</mapper>

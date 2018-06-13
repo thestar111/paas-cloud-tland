@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.quanteng.tland.cms.database.mapper.CpMapper">
+
+    <!--CP数据列信息-->
+    <sql id="CP_COLUMN">
+        cpId,parentCpId, password, account, cpName, cpStatus, memo, tel, createTime, lastUpdateTime, type, channel
+    </sql>
+
+    <!--CP多语言数据列信息-->
+    <sql id="CP_LANG_COLUMN">
+        id, cpId, cpName, memo, local
+    </sql>
+
+    <!--CP和多语言数据列信息-->
+    <sql id="CP_AND_LANG_COLUMN">
+        TC.cpId, TC.parentCpId, TL.cpName, TC.account, TL.memo, TC.createTime, TC.cpStatus,TC.type, TC.tel
+    </sql>
+
+    <!--插入CP信息-->
+    <insert id="add" parameterType="Cp">
+        INSERT INTO T_CPINFO (<include refid="CP_COLUMN"/>)
+        VALUES (#{cpId}, #{parentCpId},#{password},#{account}, #{cpName}, #{cpStatus}, #{memo},#{tel},
+        DATE_FORMAT(NOW(),"%Y-%m-%d %H:%i:%s"),DATE_FORMAT(NOW(),"%Y-%m-%d %H:%i:%s"), #{type}, #{channel})
+    </insert>
+
+    <!--插入CP多语言信息-->
+    <insert id="addCpLang" parameterType="CpLang">
+        INSERT INTO T_CPINFO_LANG (<include refid="CP_LANG_COLUMN"/>)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id}, #{item.cpId}, #{item.cpName}, #{item.memo},#{item.local})
+        </foreach>
+    </insert>
+
+    <!--修改CP信息-->
+    <update id="modify" parameterType="Cp">
+        UPDATE T_CPINFO
+        <set>
+            <if test="cpName != null">
+                cpName = #{cpName},
+            </if>
+            <if test="password != null">
+                password = #{password},
+            </if>
+            <if test="memo != null">
+                memo = #{memo},
+            </if>
+            <if test="tel != null">
+                tel = #{tel},
+            </if>
+            <if test="parentCpId != null">
+                parentCpId = #{parentCpId},
+            </if>
+        </set>
+        WHERE cpId = #{cpId}
+    </update>
+
+    <!-- 修改广告多语言信息 供平台使用 -->
+    <update id="modifyCpLang" parameterType="java.util.List">
+        UPDATE T_CPINFO_LANG
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix="cpName =case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="item.cpName != null">
+                        when cpId=#{item.cpId} AND local=#{item.local} then #{item.cpName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix=" memo =case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="item.memo != null">
+                        when cpId=#{item.cpId} AND local=#{item.local} then #{item.memo}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        WHERE
+        <foreach collection="list" separator="or" item="item" index="index">
+            cpId=#{item.cpId} AND local=#{item.local}
+        </foreach>
+    </update>
+
+    <!--修改CP状态信息-->
+    <update id="modifyCpStatus">
+        UPDATE T_CPINFO SET cpStatus=#{status} WHERE cpId IN
+        <foreach collection="cpIds" index="index" item="cpId" open="(" separator="," close=")">
+            #{cpId}
+        </foreach>
+    </update>
+
+    <!-- 查询所有cp用户 -->
+    <select id="queryCpInfos" resultType="Cp">
+        SELECT TC.cpId, TL.cpName from T_CPINFO TC INNER JOIN T_CPINFO_LANG TL ON TC.cpId=TL.cpId WHERE TC.cpStatus = #{status} AND TL.local=#{language}
+    </select>
+
+    <!-- 多条件查询cp用户 -->
+    <select id="queryCpByCondition" resultType="Cp">
+        SELECT
+        <include refid="CP_AND_LANG_COLUMN"/>
+        from T_CPINFO TC,T_CPINFO_LANG TL
+        WHERE TC.cpId=TL.cpId AND TL.local=#{language}
+        <if test="cpName != null">
+            AND TL.cpName=#{cpName}
+        </if>
+        <if test="status != null">
+            AND TC.cpStatus=#{status}
+        </if>
+        <if test="type != null">
+            AND TC.type=#{type}
+        </if>
+        ORDER BY TC.createTime DESC
+        LIMIT #{start}, #{size}
+    </select>
+
+    <!-- 多条件查询cp用户总数 -->
+    <select id="queryCountByCondition" resultType="Integer">
+        SELECT COUNT(1)
+        from T_CPINFO TC,T_CPINFO_LANG TL
+        WHERE  TC.cpId=TL.cpId AND TL.local=#{language}
+        <if test="cpName != null">
+            AND TL.cpName=#{cpName}
+        </if>
+        <if test="status != null">
+            AND TC.cpStatus=#{status}
+        </if>
+        <if test="type != null">
+            AND TC.type=#{type}
+        </if>
+    </select>
+
+    <!-- 根据cpId查询cp用户 -->
+    <select id="queryCpInfoById" parameterType="String" resultType="Cp">
+        SELECT
+        <include refid="CP_COLUMN"/>
+        from T_CPINFO WHERE cpId = #{cpId}
+    </select>
+
+    <!-- 根据cpId查询cp用户 -->
+    <select id="queryCpLangById" parameterType="String" resultType="CpLang">
+        SELECT
+        <include refid="CP_LANG_COLUMN"/>
+        from T_CPINFO_LANG WHERE cpId = #{cpId}
+    </select>
+
+    <!-- 删除Cp -->
+    <delete id="deleteCpById" parameterType="String">
+		DELETE FROM T_CPINFO WHERE cpId = #{cpId}
+	</delete>
+
+    <!-- 删除Cp多语言 -->
+    <delete id="deleteCpLangById" parameterType="String">
+		DELETE FROM T_CPINFO_LANG WHERE cpId = #{cpId}
+	</delete>
+
+
+    <!--重置密码 修改密码 -->
+    <update id="modifyPwd" parameterType="Cp">
+        UPDATE T_CPINFO SET password = #{newPassword} WHERE cpId = #{cpId}
+        <if test="password != null">
+            AND password=#{password}
+        </if>
+    </update>
+</mapper>

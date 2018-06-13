@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.quanteng.tland.user.database.mapper.UserMapper">
+
+    <!--添加用户-->
+    <insert id="create" parameterType="User">
+        INSERT INTO T_USER (accountId,accountName,accountIcon,createTime,password,channel)
+        VALUES (#{accountId},#{accountName},#{accountIcon},DATE_FORMAT(NOW(), 'Y%:M%:%D H%:I%:S%'),#{password},#{channel})
+    </insert>
+
+    <!-- 查询用户下载历史记录(分区表)-->
+    <select id="getDownloadRecord" resultType="App">
+        SELECT a.appId, TAL.appName, a.appRate, a.appVersion,a.appIcon,a.appIconThumb,a.appSize
+        FROM T_APP a, T_APP_LANG TAL, T_DOWNLOAD_APP TDA
+        WHERE a.appId=TAL.appId AND TDA.appId = TAL.appId
+        AND TDA.accountId =#{mobileNumber} AND TAL.local=#{language}
+        LIMIT #{start}, #{size}
+    </select>
+
+    <!-- 查询用户下载历史记录总数-->
+    <select id="getDownloadRecordCount" resultType="int">
+        SELECT  COUNT(1) FROM T_APP a, T_APP_LANG TAL, T_DOWNLOAD_APP TDA
+        WHERE a.appId=TAL.appId AND TDA.appId = TAL.appId
+        AND TDA.accountId =#{mobileNumber} AND TAL.local=#{language}
+        LIMIT #{start}, #{size}
+    </select>
+
+    <!--查询应用下载地址-->
+    <select id="queryAppDownloadUrl" parameterType="String" resultType="App">
+      SELECT A.appName, A.appUrl FROM T_APP A WHERE A.appId=#{appId}
+    </select>
+
+</mapper>

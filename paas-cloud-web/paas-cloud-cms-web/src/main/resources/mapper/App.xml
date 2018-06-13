@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.quanteng.tland.cms.database.mapper.AppMapper">
+
+    <!--插入应用数据列信息-->
+    <sql id="INSERT_APP_COLUMN">
+        appId, appName, appIcon, appIconThumb, appRate, appLabel, appDownload, appSize,
+        appVersion, createTime, updateTime, developer, content, catalogId, bannerImg1,
+        bannerImg2, bannerImg3, bannerImg4, bannerImgThumb1, bannerImgThumb2, bannerImgThumb3,
+        bannerImgThumb4, appUrl, cpId, appStatus, progagandaImg, extend1, extend2, extend3, extend4
+    </sql>
+
+    <!--应用数据列信息-->
+    <sql id="APP_COLUMN">
+          a.appId, a.appName, a.appIcon, a.appIconThumb,  a.appRate, a.appLabel, a.appDownload,
+		  a.appSize, a.appVersion, a.createTime, a.updateTime, a.developer, a.catalogId, a.cpId,a.appUrl,
+		  a.content, a.bannerImg1, a.bannerImg2, a.bannerImg3, a.bannerImg4, a.bannerImgThumb1, a.bannerImgThumb2, a.bannerImgThumb3, a.bannerImgThumb4,
+		  a.appStatus, a.progagandaImg, a.extend1, a.extend2, a.extend3, a.extend4
+    </sql>
+
+    <!--应用多语言数据列信息-->
+    <sql id="APP_LANG_COLUMN">
+        id, appId, appName, appLabel, developer, content, local
+    </sql>
+
+    <!--应用与多语言数据列信息-->
+    <sql id="APP_AND_LANG_COLUMN">
+       a.appId, TL.appName, a.appIcon, a.appIconThumb, a.appRate, TL.appLabel, a.appDownload,
+       a.appSize, a.appVersion, a.createTime, a.updateTime, TL.developer,
+       TL.content, a.bannerImg1, a.bannerImg2, a.bannerImg3, a.bannerImg4, a.bannerImgThumb1, a.bannerImgThumb2, a.bannerImgThumb3, a.bannerImgThumb4
+       ,a.appStatus, a.progagandaImg, TL.local, a.extend1, a.extend2, a.extend3, a.extend4
+    </sql>
+
+    <!--  查询应用列表支持多语言SQL数据列 -->
+    <sql id="LIST_LANGUAGE_APP_COLUMN">
+        a.appId, TL.appName, a.appRate, a.appVersion,a.appIcon,a.appIconThumb,a.appSize, TL.developer, a.appStatus, CL.catalogName, c.catalogId
+    </sql>
+
+    <!--  根据营销栏目编号查询应用列表SQL数据列 -->
+    <sql id="LIST_CATALOG_APP_COLUMN">
+        a.appId, a.appIcon, a.appIconThumb, TL.appName, a.appRate, a.appSize, a.appDownload, a.appVersion, TL.developer, a.appStatus, c.catalogId
+    </sql>
+
+    <!--  根据普通栏目编号查询应用列表SQL数据列 -->
+    <sql id="LIST_NORMAL_APP_COLUMN">
+        a.appId, a.appIcon, a.appIconThumb, TL.appName, a.appRate, a.appSize, a.appDownload, a.appVersion,TL.developer, a.appStatus
+    </sql>
+
+    <!--  增加app应用信息 -->
+    <insert id="add" parameterType="App">
+        INSERT INTO T_APP(
+        <include refid="INSERT_APP_COLUMN"/>
+        )
+        VALUES (#{appId}, #{appName}, #{appIcon}, #{appIconThumb}, #{appRate}, #{appLabel},
+        #{appDownload}, #{appSize}, #{appVersion},
+        DATE_FORMAT(NOW(),"%Y-%m-%d %H:%i:%s"), DATE_FORMAT(NOW(),"%Y-%m-%d %H:%i:%s"), #{developer}, #{content},
+        #{catalogId}, #{bannerImg1}, #{bannerImg2},
+        #{bannerImg3}, #{bannerImg4}, #{bannerImgThumb1}, #{bannerImgThumb2},#{bannerImgThumb3},
+        #{bannerImgThumb4}, #{appUrl}, #{cpId},
+        #{appStatus}, #{progagandaImg}, #{extend1} , #{extend2}, #{extend3}, #{extend4})
+    </insert>
+
+    <!--  增加app应用信息 -->
+    <insert id="addAppLang" parameterType="AppLang">
+        INSERT INTO T_APP_LANG (
+        <include refid="APP_LANG_COLUMN"/>
+        )
+        VALUES
+        <foreach collection="list" item="app_lang" separator=",">
+            (#{app_lang.id}, #{app_lang.appId}, #{app_lang.appName}, #{app_lang.appLabel}, #{app_lang.developer},
+            #{app_lang.content}, #{app_lang.local})
+        </foreach>
+    </insert>
+
+    <!-- 修改app信息 -->
+    <update id="modify" parameterType="App">
+        UPDATE T_APP
+        <set>
+            <if test="appName != null">
+                appName = #{appName},
+            </if>
+            <if test="appIcon != null">
+                appIcon = #{appIcon},
+            </if>
+            <if test="appIconThumb != null">
+                appIconThumb = #{appIconThumb},
+            </if>
+            <if test="appRate != null">
+                appRate = #{appRate},
+            </if>
+            <if test="appLabel != null">
+                appLabel = #{appLabel},
+            </if>
+            <if test="appDownload != null">
+                appDownload = #{appDownload},
+            </if>
+            <if test="appSize != null">
+                appSize = #{appSize},
+            </if>
+            <if test="appVersion != null">
+                appVersion = #{appVersion},
+            </if>
+            <if test="developer != null">
+                developer = #{developer},
+            </if>
+            <if test="content != null">
+                content = #{content},
+            </if>
+            <if test="catalogId != null">
+                catalogId = #{catalogId},
+            </if>
+            <if test="bannerImg1 != null">
+                bannerImg1 = #{bannerImg1},
+            </if>
+            <if test="bannerImg2 != null">
+                bannerImg2 = #{bannerImg2},
+            </if>
+            <if test="bannerImg3 != null">
+                bannerImg3 = #{bannerImg3},
+            </if>
+            <if test="bannerImg4 != null">
+                bannerImg4 = #{bannerImg4},
+            </if>
+            <if test="bannerImgThumb1 != null">
+                bannerImgThumb1 = #{bannerImgThumb1},
+            </if>
+            <if test="bannerImgThumb2 != null">
+                bannerImgThumb2 = #{bannerImgThumb2},
+            </if>
+            <if test="bannerImgThumb3 != null">
+                bannerImgThumb3 = #{bannerImgThumb3},
+            </if>
+            <if test="bannerImgThumb4 != null">
+                bannerImgThumb4 = #{bannerImgThumb4},
+            </if>
+            <if test="appUrl != null">
+                appUrl = #{appUrl},
+            </if>
+            <if test="progagandaImg != null">
+                progagandaImg = #{progagandaImg},
+            </if>
+            <if test="appStatus != null">
+                appStatus = #{appStatus},
+            </if>
+            updateTime = DATE_FORMAT(NOW(),"%Y-%m-%d %H:%i:%s")
+        </set>
+        WHERE cpId = #{cpId} AND appId = #{appId}
+    </update>
+
+    <!-- 修改应用多语言信息 -->
+    <update id="modifyAppLang" parameterType="java.util.List">
+        UPDATE T_APP_LANG
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix=" appName =case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="item.appName != null">
+                        when appId=#{item.appId} AND local=#{item.local} then #{item.appName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix=" appLabel =case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="item.appLabel != null">
+                        when appId=#{item.appId} AND local=#{item.local} then #{item.appLabel}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix=" developer =case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="item.developer != null">
+                        when appId=#{item.appId} AND local=#{item.local} then #{item.developer}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix=" content =case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="item.content != null">
+                        when appId=#{item.appId} AND local=#{item.local} then #{item.content}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        WHERE
+        <foreach collection="list" separator="or" item="item" index="index">
+            appId=#{item.appId} AND local=#{item.local}
+        </foreach>
+    </update>
+
+    <!-- 根据appId查询app 供管理平台使用-->
+    <select id="queryById" parameterType="String" resultType="App">
+        SELECT
+        <include refid="APP_COLUMN"/>
+        FROM T_APP a WHERE a.appId = #{appId}
+    </select>
+
+    <!-- 根据appId查询app多语言信息 供管理平台使用-->
+    <select id="queryAppLangById" resultType="AppLang">
+        SELECT
+        <include refid="APP_LANG_COLUMN"/>
+        FROM T_APP_LANG a WHERE a.appId = #{appId}
+    </select>
+
+    <!-- 根据appId查询app 供客户端使用-->
+    <select id="findById" resultType="App">
+        SELECT
+        <include refid="APP_AND_LANG_COLUMN"/>
+        FROM T_APP a INNER JOIN T_APP_LANG TL ON a.appId=TL.appId WHERE a.appId = #{appId} AND TL.local=#{language}
+    </select>
+
+    <!-- 查询app应用列表信息 支持多语言查询 -->
+    <select id="queryListByCondition" resultType="App" parameterType="Map">
+        SELECT
+        <include refid="LIST_LANGUAGE_APP_COLUMN"/>
+        FROM T_APP a INNER JOIN T_CATALOG c ON a.catalogId=c.catalogId
+        INNER JOIN T_APP_LANG TL ON TL.appId=a.appId
+        INNER JOIN T_CATALOG_LANG CL ON c.catalogId=CL.catalogId
+        WHERE TL.local=#{language} AND CL.local=#{language}
+        <if test="appName != null">
+            AND TL.appName LIKE concat(#{appName},'%')
+        </if>
+        <if test="appStatus != null">
+            AND a.appStatus = #{appStatus}
+        </if>
+        <if test="cpId != null">
+            AND a.cpId = #{cpId}
+        </if>
+        <if test="catalogId != null">
+            AND a.catalogId = #{catalogId}
+        </if>
+        ORDER BY a.updateTime DESC
+        <if test="start != null and size != null">
+            LIMIT #{start}, #{size}
+        </if>
+    </select>
+
+    <!-- 查询app应用总数信息 支持多语言查询 -->
+    <select id="queryCountByCondition" resultType="Integer" parameterType="Map">
+        SELECT COUNT(1) FROM T_APP a INNER JOIN T_CATALOG c ON a.catalogId=c.catalogId
+        INNER JOIN T_APP_LANG TL ON TL.appId=a.appId
+        INNER JOIN T_CATALOG_LANG CL ON c.catalogId=CL.catalogId
+        WHERE TL.local=#{language} AND CL.local=#{language}
+        <if test="appName != null">
+            AND TL.appName LIKE concat(#{appName},'%')
+        </if>
+        <if test="appStatus != null">
+            AND a.appStatus = #{appStatus}
+        </if>
+        <if test="cpId != null">
+            AND a.cpId = #{cpId}
+        </if>
+        <if test="catalogId != null">
+            AND a.catalogId = #{catalogId}
+        </if>
+    </select>
+
+    <!-- 根据营销栏目编号查询应用信息 营销栏目-->
+    <select id="queryByPromotionCatalogId" resultType="App">
+        SELECT
+        <include refid="LIST_CATALOG_APP_COLUMN"/>
+        FROM T_APP a INNER JOIN T_CATALOG_RELATION ca on a.appId = ca.targetId
+        INNER JOIN T_CATALOG c ON a.catalogId = c.catalogId
+        INNER JOIN T_APP_LANG TL ON TL.appId=a.appId
+        WHERE ca.catalogId = #{catalogId} AND TL.local=#{language}
+        <if test="start != null and size != null">
+            LIMIT #{start}, #{size}
+        </if>
+    </select>
+
+    <!--查询普通栏目下的应用信息 普通栏目 -->
+    <select id="queryAppByNormalCatalog" resultType="App">
+        SELECT
+        <include refid="LIST_NORMAL_APP_COLUMN"/>
+        FROM T_APP a INNER JOIN T_APP_LANG TL ON TL.appId=a.appId
+        WHERE TL.local=#{language} AND a.appStatus=0 AND a.catalogId = #{catalogId}
+        ORDER BY a.updateTime DESC LIMIT #{start}, #{size}
+    </select>
+
+    <!-- 查询总数 普通栏目-->
+    <select id="queryCountByColumnId" resultType="int" parameterType="String">
+        SELECT COUNT(1) FROM T_APP a
+        WHERE a.catalogId = #{catalogId} AND a.appStatus = 0
+    </select>
+
+    <!-- 查询营销栏目下应用总数  营销栏目-->
+    <select id="queryCountByPromotionColumnId" resultType="int" parameterType="String">
+        SELECT COUNT(1) FROM T_CATALOG_RELATION t INNER JOIN T_APP a
+        ON t.targetId = a.appId where t.catalogId = #{catalogId}
+    </select>
+
+    <!-- 删除app应用信息 -->
+    <delete id="delete" parameterType="String">
+  		DELETE FROM T_APP WHERE appId = #{appId}
+    </delete>
+
+    <!-- 删除app应用多语言信息 -->
+    <delete id="deleteAppLang" parameterType="String">
+  		DELETE FROM T_APP_LANG WHERE appId = #{appId}
+    </delete>
+
+    <!--统计普通栏目下是否有关联的应用游戏-->
+    <select id="queryColumnAppRelationCount" parameterType="String" resultType="Integer">
+        SELECT COUNT(1)  FROM T_APP WHERE catalogId = #{catalogId}
+    </select>
+
+    <!--更新app下载次数-->
+    <update id="modifyDownloadTimes" parameterType="String">
+        UPDATE T_APP SET appDownload = appDownload + 1 WHERE appId = #{appId}
+    </update>
+
+    <!--查询热门下的游戏应用-->
+    <select id="queryHotApp" resultType="App">
+        SELECT a.appId, TL.appName, a.appRate, a.appVersion,a.appIcon,a.appIconThumb,a.appSize, TL.developer, a.appStatus, c.catalogId
+        FROM T_APP a, T_APP_LANG TL, T_CATALOG c, T_CATALOG_RELATION R
+        WHERE R.catalogId=c.catalogId AND R.targetId=a.appId AND R.targetId= TL.appId  AND c.catalogType=2
+        AND c.catalogName=#{catalogName} AND TL.local=#{language}  AND a.appStatus='0' LIMIT 0, 8
+    </select>
+
+    <!--查询推荐的游戏应用-->
+    <select id="queryRecommandApp" resultType="App">
+        SELECT a.appId, TL.appName, a.appRate, a.appVersion,a.appIcon,a.appIconThumb,a.appSize, TL.developer, a.appStatus
+        FROM T_APP a INNER JOIN T_APP_LANG TL ON a.appId=TL.appId
+        WHERE a.appId != #{appId} AND TL.local=#{language} AND a.catalogId=#{catalogId} AND a.appStatus='0'
+        ORDER BY updateTime DESC LIMIT 0, 8
+    </select>
+
+    <!--更新app状态-->
+    <update id="modifyAppStatus" parameterType="Map">
+        UPDATE T_APP
+        <set>
+          <if test="appStatus != null">
+              appStatus = #{appStatus},
+          </if>
+          <if test="appRate != null">
+              appRate = #{appRate},
+          </if>
+          updateTime = DATE_FORMAT(NOW(),"%Y-%m-%d %H:%i:%s")
+        </set>
+        WHERE appId =#{appId}
+
+    </update>
+</mapper>

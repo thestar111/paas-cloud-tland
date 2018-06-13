@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.quanteng.tland.cms.database.mapper.CatalogMapper">
+
+    <!-- 栏目字段 -->
+    <sql id="CATALOG_COLUMN">
+        catalogId, catalogName, catalogType, catalogIcon, catalogDesc, parentCatalogId, orderNum, nodeType, progagandaImg
+    </sql>
+
+    <!-- 栏目多语言字段 -->
+    <sql id="CATALOG_LANG_COLUMN">
+        id, catalogId, catalogName, catalogDesc, local
+    </sql>
+
+    <!-- 栏目和栏目多语言合并字段 -->
+    <sql id="CATALOG_AND_LANG_COLUMN">
+        TC.catalogId, TL.catalogName, TC.catalogType, TC.catalogIcon, TC.progagandaImg, TL.catalogDesc,TC.parentCatalogId, TC.orderNum, TC.nodeType
+    </sql>
+
+    <!-- 栏目数据列信息 -->
+    <sql id="LIST_CATALOG_COLUMN">
+        TC.catalogId, TL.catalogName, TC.catalogType, TC.catalogIcon, TC.orderNum, TC.nodeType, TC.progagandaImg
+    </sql>
+
+    <!--应用栏目信息数据列-->
+    <sql id="LIST_NORMAL_APP_COLUMN">
+        a.appId, a.appIcon, a.appIconThumb, TL.appName, a.appRate, a.appSize, a.appDownload, a.appVersion, TL.developer, a.appStatus
+    </sql>
+
+    <!-- 添加栏目 -->
+    <insert id="add" parameterType="Catalog">
+        INSERT INTO T_CATALOG(<include refid="CATALOG_COLUMN"/>)
+        VALUES (#{catalogId}, #{catalogName}, #{catalogType}, #{catalogIcon}, #{catalogDesc}, #{parentCatalogId},
+        #{orderNum}, #{nodeType}, #{progagandaImg})
+    </insert>
+
+    <!-- 添加栏目多语言信息 -->
+    <insert id="addCatalogLang" parameterType="CatalogLang">
+        INSERT INTO T_CATALOG_LANG(<include refid="CATALOG_LANG_COLUMN"/>)
+        VALUES
+        <foreach collection="list" item="app_lang" separator=",">
+            (#{app_lang.id}, #{app_lang.catalogId}, #{app_lang.catalogName}, #{app_lang.catalogDesc}, #{app_lang.local})
+        </foreach>
+
+    </insert>
+
+    <!-- 更新栏目信息 -->
+    <update id="update" parameterType="Catalog">
+        UPDATE T_CATALOG
+        <trim prefix="set" suffixOverrides=",">
+            <if test="catalogName != null">
+                catalogName = #{catalogName},
+            </if>
+            <if test="catalogIcon != null">
+                catalogIcon = #{catalogIcon},
+            </if>
+            <if test="progagandaImg != null">
+                progagandaImg = #{progagandaImg},
+            </if>
+            <if test="catalogDesc != null">
+                catalogDesc = #{catalogDesc},
+            </if>
+            <if test="orderNum != null">
+                orderNum = #{orderNum},
+            </if>
+            <if test="nodeType != null">
+                nodeType = #{nodeType}
+            </if>
+        </trim>
+        WHERE catalogId = #{catalogId}
+    </update>
+
+    <!-- 修改栏目多语言信息 -->
+    <update id="modifyCatalogLang" parameterType="java.util.List">
+        UPDATE T_CATALOG_LANG
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix=" catalogName =case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="item.catalogName != null">
+                        when catalogId=#{item.catalogId} AND local=#{item.local} then #{item.catalogName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix=" catalogDesc =case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="item.catalogDesc != null">
+                        when catalogId=#{item.catalogId} AND local=#{item.local} then #{item.catalogDesc}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        WHERE
+        <foreach collection="list" separator="or" item="item" index="index">
+            catalogId=#{item.catalogId} AND local=#{item.local}
+        </foreach>
+    </update>
+
+    <!--查询排序位在当前栏目之后的所有栏目id-->
+    <select id="getColumnByAfterOrder" parameterType="Map" resultType="String">
+        SELECT catalogId FROM T_CATALOG WHERE orderNum > #{orderNum} AND catalogType = #{catalogType} ORDER BY orderNum ASC
+    </select>
+
+    <!-- 根据栏目名称，类型查询栏目 -->
+    <select id="queryListByCondition" resultType="Catalog" parameterType="Map">
+        SELECT
+        <include refid="CATALOG_AND_LANG_COLUMN"/>
+        FROM T_CATALOG TC INNER JOIN T_CATALOG_LANG TL ON TC.catalogId = TL.catalogId
+        WHERE TL.local=#{language}
+        <if test="catalogName != null">
+            AND TL.catalogName LIKE concat(#{catalogName},'%')
+        </if>
+        <if test="type != null">
+            AND TC.catalogType = #{type}
+        </if>
+        <if test="nodeType != null">
+            AND TC.nodeType = #{nodeType}
+        </if>
+        ORDER BY TC.orderNum ASC
+        <if test="start != null and size != null">
+            limit #{start}, #{size}
+        </if>
+    </select>
+
+    <!-- 根据栏目名称，类型查询栏目总数 -->
+    <select id="queryCountByCondition" resultType="int" parameterType="Map">
+        SELECT COUNT(1) FROM T_CATALOG TC INNER JOIN T_CATALOG_LANG TL ON TC.catalogId = TL.catalogId
+        WHERE TL.local=#{language}
+        <if test="catalogName != null">
+            AND TL.catalogName LIKE concat(#{catalogName},'%')
+        </if>
+        <if test="type != null">
+            AND TC.catalogType = #{type}
+        </if>
+        <if test="nodeType != null">
+            AND TC.nodeType = #{nodeType}
+        </if>
+    </select>
+
+    <!-- 查询所有栏目 -->
+    <select id="queryAll" resultType="Catalog">
+        SELECT
+        <include refid="CATALOG_COLUMN"/>
+        FROM T_CATALOG
+    </select>
+
+    <!-- 更根据栏目id查询栏目 供平台使用 -->
+    <select id="findCatalogById" resultType="Catalog" parameterType="String">
+        SELECT
+        <include refid="CATALOG_COLUMN"/>
+        FROM T_CATALOG WHERE catalogId = #{catalogId}
+    </select>
+
+    <!-- 更根据栏目id查询栏目语言信息 供平台使用 -->
+    <select id="findLangByCatalogId" resultType="CatalogLang" parameterType="String">
+        SELECT
+        <include refid="CATALOG_LANG_COLUMN"/>
+        FROM T_CATALOG_LANG WHERE catalogId = #{catalogId}
+    </select>
+
+    <!-- 更根据栏目id查询栏目 供客户端使用 -->
+    <select id="queryCatalogById" resultType="Catalog">
+        SELECT
+        <include refid="CATALOG_AND_LANG_COLUMN"/>
+        FROM T_CATALOG TC INNER JOIN T_CATALOG_LANG TL ON TC.CATALOGID=TL.CATALOGID
+        WHERE TC.catalogId = #{catalogId} AND TL.local=#{language}
+    </select>
+
+    <!-- 根据栏目id删除栏目 -->
+    <delete id="delete" parameterType="String">
+    	DELETE FROM T_CATALOG WHERE catalogId = #{catalogId}
+    </delete>
+
+    <!-- 根据栏目id删除栏目多语言信息 -->
+    <delete id="deleteCatalogLang" parameterType="String">
+    	DELETE FROM T_CATALOG_LANG WHERE catalogId = #{catalogId}
+    </delete>
+
+    <!-- 根据栏目id删除栏目下的配置信息 -->
+    <delete id="deleteCatalogRelation" parameterType="String">
+    	DELETE FROM T_CATALOG_RELATION WHERE catalogId = #{catalogId}
+    </delete>
+
+    <!--根据栏目名称查询-->
+    <select id="queryCatalogByName" resultType="Catalog">
+        SELECT
+        <include refid="CATALOG_AND_LANG_COLUMN"/>
+        FROM T_CATALOG TC INNER JOIN T_CATALOG_LANG TL ON TC.catalogId=TL.catalogId WHERE TL.local=#{language} AND
+        TL.catalogName IN
+        <foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <!--查询一级栏目信息-->
+    <select id="queryParentCatalog" parameterType="String" resultType="Catalog">
+        SELECT
+        <include refid="LIST_CATALOG_COLUMN"/>
+        FROM T_CATALOG TC INNER JOIN T_CATALOG_LANG TL ON TC.catalogId=TL.catalogId
+        WHERE (TC.parentCatalogId IS NULL OR TC.parentCatalogId ='') AND TC.catalogType = 1 AND TC.nodeType=2 AND TL.local=#{language} ORDER BY
+        TC.orderNum ASC
+    </select>
+
+    <!--查询二级栏目信息-->
+    <select id="querySubCatalogByParentId" resultType="Catalog">
+        SELECT
+        <include refid="LIST_CATALOG_COLUMN"/>
+        FROM T_CATALOG TC INNER JOIN T_CATALOG_LANG TL ON TC.catalogId=TL.catalogId
+        WHERE TC.parentCatalogId=#{catalogId} AND TC.catalogType = '1' AND TL.local=#{language} ORDER BY TC.orderNum ASC
+        LIMIT 0, 4
+    </select>
+
+    <!--根据应用栏目编号查询应用信息-->
+    <select id="queryAppsByAppCatalogId" resultType="CatalogAppRela">
+        SELECT
+          <include refid="LIST_NORMAL_APP_COLUMN"/>
+        FROM
+            T_APP a,
+            T_APP_LANG TL
+        WHERE
+            TL.appId = a.appId
+            AND TL. LOCAL = #{language}
+            AND a.appStatus = 0
+            AND a.catalogId = #{catalogId}
+            ORDER BY a.updateTime DESC LIMIT #{start}, #{size}
+    </select>
+
+    <!--根据应用栏目编号查询应用总数-->
+    <select id="queryAppsCountByAppCatalogId" resultType="Integer">
+        SELECT COUNT(1)
+        FROM T_APP a, T_APP_LANG TL, T_CATALOG C, T_CATALOG_LANG TCL
+        WHERE a.catalogId=C.catalogId AND TL.appId=a.appId AND C.catalogId=TCL.catalogId
+        AND TL.local=#{language} AND TCL.local=#{language} AND a.appStatus=0 AND a.catalogId = #{catalogId}
+    </select>
+
+    <!--根据栏目类型查询该类型下序号最大值-->
+    <select id="queryMaxOrderNumByCatalogType" resultType="Integer">
+      SELECT IFNULL(MAX(orderNum),0) FROM T_CATALOG T WHERE T.catalogType=#{catalogType} AND T.nodeType=#{nodeType} ORDER BY T.orderNum
+    </select>
+
+    <!--根据栏目id查询该栏目下的子栏目-->
+    <select id="querySubCatalogByCatalogId" resultType="Catalog">
+        SELECT tc.catalogId, tl.catalogName, tc.catalogType,tl.catalogDesc,tc.parentCatalogId, tc.orderNum, tc.nodeType
+        FROM T_CATALOG tc
+        INNER JOIN T_CATALOG_LANG tl on tc.catalogId= tl.catalogId
+        where  tl.local =#{language}
+        AND tc.catalogType= '1'AND tc.nodeType= 1
+        AND tc.parentCatalogId = #{parentCatalogId}
+        ORDER BY tc.orderNum
+        LIMIT #{start}, #{size}
+     </select>
+
+    <!--根据栏目id查询该栏目下的子栏目总数-->
+    <select id="querySubCatalogCountByCatalogId" resultType="Integer">
+        SELECT COUNT(1) FROM T_CATALOG tc
+        INNER JOIN T_CATALOG_LANG tl on tc.catalogId= tl.catalogId
+        where  tl.local =#{language}
+        AND tc.catalogType= '1'AND tc.nodeType= 1
+        AND tc.parentCatalogId = #{catalogId}
+    </select>
+
+    <!-- 更新普通栏目排序优先级字段 供market的普通栏目排序-->
+    <update id="modifyCatalogOrderNum" parameterType="java.util.List">
+        UPDATE T_CATALOG
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix=" orderNum =case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="item.orderNum != null">
+                        when catalogId = #{item.catalogId} AND catalogType = 1 AND nodeType = #{item.nodeType} then #{item.orderNum}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        WHERE
+        <foreach collection="list" separator="or" item="item" index="index">
+            catalogId = #{item.catalogId} AND catalogType = 1 AND nodeType = #{item.nodeType}
+        </foreach>
+    </update>
+
+    <!-- 获取当前排序位置，通过catalogId 供market的普通栏目置顶 -->
+    <select id="getOrderNumByCatalogId" parameterType="String" resultType="Catalog">
+        SELECT c.orderNum,c.parentCatalogId FROM T_CATALOG c WHERE c.catalogId = #{catalogId}
+    </select>
+
+    <!-- 获取前置子栏目数据 供market的普通栏目置顶-->
+    <select id="queryBeforeSubcatalog" resultType="Catalog">
+        SELECT catalogId, orderNum,nodeType FROM T_CATALOG
+        WHERE orderNum &lt;= #{orderNum} AND parentCatalogId = #{catalogId} AND nodeType= #{nodeType} ORDER BY orderNum
+    </select>
+</mapper>

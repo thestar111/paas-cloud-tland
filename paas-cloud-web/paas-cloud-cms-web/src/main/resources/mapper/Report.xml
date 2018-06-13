@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.quanteng.tland.cms.database.mapper.ReportMapper">
+
+    <!-- 全部字段-->
+    <sql id="sqlColumn">
+        a.app_id,a.app_name,cp.cpName
+    </sql>
+
+    <!--ReportForm结果集-->
+    <resultMap id="formMap" type="ReportForm">
+        <id column="app_id" property="serviceCode"/>
+        <result column="app_name" property="appName"/>
+        <result column="cpName" property="cpName"/>
+    </resultMap>
+
+    <!--Report报表-->
+    <resultMap id="reportDataMap" type="ReportData">
+        <result column="TIME" property="time"/>
+        <result column="PV" property="pv"/>
+        <result column="USER" property="user"/>
+        <result column="BUSSINESS_ORDER_USER" property="bussinessOrderUser"/>
+        <result column="BUNDLE_ORDER_USER" property="bundleOrderUser"/>
+        <result column="PAY_USER" property="payUser"/>
+        <result column="DAILY_PAY_USER" property="dailyPayUser"/>
+        <result column="WEEKLY_PAY_USER" property="weeklyPayUser"/>
+        <result column="UNSUB_USER" property="unSubUser"/>
+    </resultMap>
+
+    <!--Income报表-->
+    <resultMap id="dataIncomeMap" type="DataIncome">
+        <result column="time" property="time"/>
+        <result column="dailyBundle" property="dailyIncome"/>
+        <result column="weeklyBundle" property="weeklyIncome"/>
+        <result column="total" property="amountIncome"/>
+    </resultMap>
+
+    <select id="gainReportForms" resultMap="formMap" parameterType="Map">
+        SELECT
+        <include refid="sqlColumn"/>
+        FROM T_APP a INNER JOIN T_CPINFO cp ON a.cp_id=cp.cpId
+        AND a.app_status = #{appStatus} WHERE 1=1
+        <if test="appName != null">
+            AND a.app_name LIKE concat('%',#{appName},'%')
+        </if>
+        <if test="serviceId != null">
+            AND a.app_id = #{serviceId}
+        </if>
+        ORDER BY a.app_id
+        LIMIT ${begin},${end}
+    </select>
+
+    <select id="countReportForms" resultType="Integer" parameterType="Map">
+        SELECT
+        COUNT(1)
+        FROM T_APP a INNER JOIN T_CPINFO cp ON a.cp_id=cp.cpId
+        AND a.app_status = #{appStatus} WHERE 1=1
+        <if test="appName != null">
+            AND a.app_name LIKE concat('%',#{appName},'%')
+        </if>
+        <if test="serviceId != null">
+            AND a.app_id = #{serviceId}
+        </if>
+    </select>
+
+    <select id="countDownTimes" parameterType="Map" resultType="Integer">
+        SELECT COUNT(1) FROM T_DOWNLOAD_APP tda WHERE tda.app_id = #{appId}
+        <if test="startTime != null and endTime != null">
+            AND down_time &gt;= #{startTime} AND down_time &lt;= #{endTime}
+        </if>
+        <if test="startTime != null and endTime == null">
+            AND down_time &gt;= #{startTime}
+        </if>
+        <if test="startTime == null and endTime != null">
+            AND down_time &lt;= #{endTime}
+        </if>
+        <if test="channel != null">
+            AND channel = #{channel}
+        </if>
+        <if test="model != null">
+            AND model = #{model}
+        </if>
+    </select>
+
+    <!--周期套餐，有效统计  SELECT COUNT(1) FROM T_SUBPACKAGE ts WHERE ts.app_id = #{appId} -->
+    <select id="countEffectiveClickTimes" parameterType="Map" resultType="Integer">
+        SELECT COUNT(1) FROM T_SUBPACKAGE ts,T_PACKAGE tp WHERE ts.packageId=tp.packageId AND tp.packageType != 2 AND
+        ts.app_id = #{appId}
+        <if test="beginTime != null and endTime!=null ">
+            AND ts.sub_bg_time &gt;= DATE_FORMAT(#{beginTime} , '%Y%m%d%H%i%s')
+            AND ts.sub_end_time &lt;= DATE_FORMAT(#{endTime} , '%Y%m%d%H%i%s')
+        </if>
+        <if test=" beginTime != null and endTime == null ">
+            AND ts.sub_bg_time &gt;= DATE_FORMAT(#{beginTime} , '%Y%m%d%H%i%s')
+        </if>
+        <if test=" beginTime == null and endTime != null ">
+            AND ts.sub_end_time &lt;= DATE_FORMAT(#{endTime} , '%Y%m%d%H%i%s')
+        </if>
+        AND ts.sub_state NOT IN ('1','2')
+    </select>
+
+    <!--按次套餐，有效统计次数-->
+    <select id="countOneDemandClickTimes" parameterType="Map" resultType="Integer">
+        SELECT COUNT(1) FROM T_SUBONDEMAND ts WHERE ts.app_id = #{appId} AND sub_state NOT IN ('1', '2')
+        <if test="beginTime != null and endTime!=null ">
+            AND ts.sub_bg_time &gt;= DATE_FORMAT(#{beginTime} , '%Y%m%d%H%i%s')
+            AND ts.sub_end_time &lt;= DATE_FORMAT(#{endTime} , '%Y%m%d%H%i%s')
+        </if>
+        <if test=" beginTime != null and endTime == null ">
+            AND ts.sub_bg_time &gt;= DATE_FORMAT(#{beginTime} , '%Y%m%d%H%i%s')
+        </if>
+        <if test=" beginTime == null and endTime != null ">
+            AND ts.sub_end_time &lt;= DATE_FORMAT(#{endTime} , '%Y%m%d%H%i%s')
+        </if>
+    </select>
+
+    <resultMap id="cpResultMap" type="ReportForm">
+        <result column="cpid" property="cpId"/>
+        <result column="cpName" property="cpName"/>
+        <result column="cpStatus" property="cpStatus"/>
+        <result column="parentCpId" property="parentCpId"/>
+    </resultMap>
+
+    <!--获取需要统计信息的 cp 列表 -->
+    <select id="gainAllCPToForms" parameterType="Map" resultMap="cpResultMap">
+        SELECT tcp.cpId,tcp.cpName,tcp.cpStatus,tcp.parentCpId FROM T_CPINFO tcp
+        WHERE 1=1
+        <if test="cpName != null">
+            AND tcp.cpName LIKE concat('%',#{cpName},'%')
+        </if>
+        <if test="cpStatus != null">
+            AND tcp.cpStatus = #{cpStatus}
+        </if>
+        <if test="parentCpId != null">
+            AND tcp.parentCpId = #{parentCpId}
+        </if>
+        <if test="cpId != null">
+            AND tcp.cpId = #{cpId}
+        </if>
+        LIMIT ${index},${size}
+    </select>
+
+    <!--需要统计信息的 cp 列表 当前的总数量-->
+    <select id="countCpTotalNumber" parameterType="Map" resultType="Integer">
+        SELECT
+        COUNT(1)
+        FROM T_CPINFO tcp
+        WHERE 1=1
+        <if test=" cpName != null and cpName != '' ">
+            AND tcp.cpName LIKE concat('%',#{cpName},'%')
+        </if>
+        <if test="cpStatus != null">
+            AND tcp.cpStatus = #{cpStatus}
+        </if>
+        <if test="parentCpId != null">
+            AND tcp.parentCpId = #{parentCpId}
+        </if>
+        <if test="cpId != null">
+            AND tcp.cpId = #{cpId}
+        </if>
+    </select>
+
+    <!--统计 cp download 表下载次数-->
+    <select id="gainCPDownloadTimes" parameterType="Map" resultType="Integer">
+        SELECT
+        COUNT(1)
+        FROM
+        T_DOWNLOAD_APP tda
+        INNER JOIN T_APP ta
+        WHERE
+        tda.app_id = ta.app_id
+        AND ta.cp_id = #{currentCpId}
+        <if test="beginTime != null and endTime!=null ">
+            AND tda.down_time BETWEEN DATE_FORMAT(#{beginTime} , '%Y-%m-%d %H:%i:%s')
+            AND DATE_FORMAT(#{endTime} , '%Y-%m-%d %H:%i:%s')
+        </if>
+        <if test=" beginTime != null and endTime == null ">
+            AND tda.down_time &gt;= DATE_FORMAT(#{beginTime} , '%Y-%m-%d %H:%i:%s')
+        </if>
+        <if test=" beginTime == null and endTime != null ">
+            AND tda.down_time &lt;= DATE_FORMAT(#{endTime} , '%Y-%m-%d %H:%i:%s')
+        </if>
+    </select>
+
+    <!--周期有效下载次数统计-->
+    <select id="countedCpPackageTimes" parameterType="Map" resultType="Integer">
+        SELECT
+        COUNT(1)
+        FROM
+        T_SUBPACKAGE tsb
+        INNER JOIN T_APP ta
+        INNER JOIN T_PACKAGE tp
+        WHERE
+        tsb.app_id = ta.app_id
+        AND tsb.packageId = tp.packageId
+        AND tp.packageType != 2
+        AND ta.cp_id = #{currentCpId}
+        <if test="beginTime != null and endTime!=null ">
+            AND tsb.sub_bg_time &gt;= DATE_FORMAT(#{beginTime} , '%Y%m%d%H%i%s')
+            AND tsb.sub_end_time &lt;= DATE_FORMAT(#{endTime} , '%Y%m%d%H%i%s')
+        </if>
+        <if test=" beginTime != null and endTime == null ">
+            AND tsb.sub_bg_time &gt;= DATE_FORMAT(#{beginTime} , '%Y%m%d%H%i%s')
+        </if>
+        <if test=" beginTime == null and endTime != null ">
+            AND tsb.sub_end_time &lt;= DATE_FORMAT(#{endTime} , '%Y%m%d%H%i%s')
+        </if>
+        AND tsb.sub_state NOT IN ('1', '2')
+    </select>
+
+    <!--按次有效下载次数统计-->
+    <select id="countedCpOnDemandTimes" parameterType="Map" resultType="Integer">
+        SELECT
+        COUNT(1)
+        FROM
+        T_SUBONDEMAND tob
+        INNER JOIN T_APP ta
+        WHERE
+        tob.app_id = ta.app_id
+        AND ta.cp_id = #{currentCpId}
+        <if test="beginTime != null and endTime!=null ">
+            AND tob.sub_bg_time &gt;= DATE_FORMAT(#{beginTime} , '%Y%m%d%H%i%s')
+            AND tob.sub_end_time &lt;= DATE_FORMAT(#{endTime} , '%Y%m%d%H%i%s')
+        </if>
+        <if test=" beginTime != null and endTime == null ">
+            AND tob.sub_bg_time &gt;= DATE_FORMAT(#{beginTime} , '%Y%m%d%H%i%s')
+        </if>
+        <if test=" beginTime == null and endTime != null ">
+            AND tob.sub_end_time &lt;= DATE_FORMAT(#{endTime} , '%Y%m%d%H%i%s')
+        </if>
+        AND tob.sub_state NOT IN ('1', '2')
+    </select>
+
+    <!--查询Report数据列表 -->
+    <select id="quertReportDateList" parameterType="Map" resultMap="reportDataMap">
+        SELECT * FROM T_BILL_REPORT
+        WHERE 1=1
+        <if test="beginTime != null">
+            AND TIME &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null">
+            AND TIME &lt;= #{endTime}
+        </if>
+    </select>
+
+    <!--查询Income数据列表 -->
+    <select id="queryIncomeList" parameterType="Map" resultMap="dataIncomeMap">
+        SELECT * FROM T_BILL_INCOME
+        WHERE 1=1
+        <if test="beginTime != null">
+            AND TIME &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null">
+            AND TIME &lt;= #{endTime}
+        </if>
+    </select>
+</mapper>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.quanteng.tland.cms.database.mapper.LocalMapper">
+
+    <!-- 增加国际语言 -->
+    <insert id="add" parameterType="Local">
+        INSERT INTO T_LANG
+        (`local`,country)
+        VALUES
+        (#{localName}, #{country})
+    </insert>
+
+    <!-- 修改国际语言 -->
+    <update id="update" parameterType="Local">
+        UPDATE T_LANG
+        <set>
+            <if test="localName != null">
+                `local` = #{localName},
+            </if>
+            <if test="country != null">
+                country = #{country},
+            </if>
+        </set>
+        WHERE id = #{localId}
+    </update>
+
+    <!-- 根据id查询语言信息 -->
+    <select id="findById" parameterType="String" resultType="Local">
+        SELECT id AS localId,`local` AS localName,country
+         FROM T_LANG WHERE id = #{localId}
+    </select>
+
+    <!-- 查询全部语言信息 -->
+    <select id="query" resultType="Local">
+        SELECT id AS localId,`local` AS localName,country
+        FROM T_LANG
+    </select>
+
+    <!-- 删除语言信息 -->
+    <delete id="delete" parameterType="String">
+		DELETE FROM T_LANG WHERE id = #{localId}
+	</delete>
+</mapper>

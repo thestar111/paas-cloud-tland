@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.quanteng.tland.cms.database.mapper.AdminMapper">
+
+    <resultMap id="AdminMap" type="Admin">
+        <id property="adminId" column="adminId"/>
+        <result column="adminName" property="adminName"/>
+        <result column="password" property="password"/>
+        <result column="englishName" property="englishName"/>
+        <result column="adminAccount" property="adminAccount"/>
+        <result column="homeAddr" property="homeAddr"/>
+        <result column="birthday" property="birthday"/>
+        <result column="sex" property="sex"/>
+        <result column="tel" property="tel"/>
+        <result column="status" property="status"/>
+        <result column="email" property="email"/>
+        <result column="userType" property="userType"/>
+        <result column="cpId" property="cpId"/>
+        <result column="channel" property="channel"/>
+    </resultMap>
+
+    <!--管理员数据列-->
+    <sql id="ADMIN_COLUMN">
+        adminId,adminName,password,englishName,adminAccount,homeAddr,birthday,sex,tel,status,email,userType,cpId,channel
+    </sql>
+
+    <!--管理员列表数据列-->
+    <sql id="ADMIN_LIST_COLUMN">
+        adminId, adminName, adminAccount, homeAddr, sex, tel, status, email, userType, cpId
+    </sql>
+
+    <!--添加员工-->
+    <insert id="add" parameterType="Admin">
+        INSERT INTO
+         T_ADMIN(adminId, adminName, password, englishName, adminAccount, homeAddr,birthday, sex, status, email, lastUpdateTime, createTime,userType,cpId,channel,tel)
+        VALUES
+         (#{adminId}, #{adminName}, #{password}, #{englishName}, #{adminAccount}, #{homeAddr},#{birthday}, #{sex}, #{status}, #{email}, DATE_FORMAT(NOW(),"%Y-%m-%d %H:%i:%s"), DATE_FORMAT(NOW(),"%Y-%m-%d %H:%i:%s"),
+        #{userType}, #{cpId}, #{channel}, #{tel})
+    </insert>
+
+    <!--查询员工列表-->
+    <select id="queryList" resultMap="AdminMap" parameterType="Map">
+        SELECT
+        <include refid="ADMIN_LIST_COLUMN"/>
+        FROM T_ADMIN WHERE 1 = 1
+        <if test="adminName != null">
+            AND adminName LIKE concat(#{adminName},'%')
+        </if>
+        <if test="englishName != null">
+            AND englishName LIKE concat(#{englishName},'%')
+        </if>
+        <if test="userType != null">
+            AND userType = #{userType}
+        </if>
+        <if test="start !=null and size != null">
+            limit #{start}, #{size}
+        </if>
+    </select>
+
+    <!--查询员工总数-->
+    <select id="queryCount" resultType="int" parameterType="Map">
+        SELECT COUNT(1) FROM T_ADMIN WHERE 1 = 1
+        <if test="adminName != null">
+            AND adminName LIKE concat(#{adminName},'%')
+        </if>
+        <if test="englishName != null">
+            AND englishName LIKE concat(#{englishName},'%')
+        </if>
+        <if test="userType != null">
+            AND userType = #{userType}
+        </if>
+    </select>
+
+    <!--修改员工信息-->
+    <update id="modify" parameterType="Admin">
+        UPDATE T_ADMIN
+        <set>
+            <if test="adminName != null">
+                adminName = #{adminName},
+            </if>
+            <if test="englishName != null">
+                englishName = #{englishName},
+            </if>
+            <if test="homeAddr != null">
+                homeAddr = #{homeAddr},
+            </if>
+            <if test="birthday != null">
+                birthday = #{birthday},
+            </if>
+            <if test="sex != null">
+                sex = #{sex},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="tel != null">
+                tel = #{tel},
+            </if>
+            <if test="email != null">
+                email = #{email},
+            </if>
+            <if test="adminAccount != null">
+                adminAccount = #{adminAccount},
+            </if>
+            <if test="password != null">
+                password = #{password},
+            </if>
+            <if test="userType != null">
+                userType = #{userType},
+            </if>
+            <if test="cpId != null">
+                cpId = #{cpId},
+            </if>
+            <if test="channel != null">
+                channel = #{channel},
+            </if>
+            lastUpdateTime = DATE_FORMAT(NOW(),"%Y-%m-%d %H:%i:%s")
+        </set>
+        WHERE adminId = #{adminId}
+    </update>
+
+    <!--根据员工账号查询员工信息-->
+    <select id="findAdminByAccount" parameterType="String" resultMap="AdminMap">
+        SELECT
+        <include refid="ADMIN_COLUMN"/>
+        FROM T_ADMIN WHERE adminAccount = #{adminAccount}
+    </select>
+
+    <!--根据员工编号查询员工信息-->
+    <select id="queryAdminById" parameterType="Map" resultType="String">
+        SELECT
+        <include refid="ADMIN_COLUMN"/>
+        FROM T_ADMIN WHERE adminId = #{adminId}
+    </select>
+
+    <!--删除管理员信息-->
+    <delete id="removeAdmin" parameterType="String">
+        DELETE FROM T_ADMIN WHERE adminId = #{adminId}
+    </delete>
+
+    <!--修改管理员密码-->
+    <update id="modifyAdminPassword">
+        UPDATE T_ADMIN c SET c.password = #{password} WHERE adminId = #{adminId} AND c.password=#{oldPassword}
+    </update>
+
+    <select id="getCpIdByAccount" parameterType="String" resultType="String">
+        SELECT cpid  FROM T_ADMIN where adminAccount = #{adminAccount}
+    </select>
+</mapper>

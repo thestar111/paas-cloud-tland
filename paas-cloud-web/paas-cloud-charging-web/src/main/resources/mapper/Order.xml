@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.quanteng.tland.charging.database.mapper.OrderMapper">
+
+    <!--订购数据列信息-->
+    <sql id="ORDER_COLUMN">
+        subId, accountId, packageType, startTime, endTime, status, reason,unSubChannel, channel, model, appId, subType, correlator, createTime, lastUpdateTime, extend1, extend2, extend3, extend4
+    </sql>
+
+    <!--查询订单列信息-->
+    <sql id="LIST_ORDER_COLUMN">
+        subId, accountId, packageType, startTime, endTime, status, correlator, createTime
+    </sql>
+
+    <!--创建订单-->
+    <insert id="createOrder" parameterType="Order">
+        INSERT INTO T_SUBPACKAGE(
+        <include refid="ORDER_COLUMN"/>
+        )
+        VALUES
+        (#{subId}, #{accountId}, #{packageType}, #{startTime}, #{endTime}, #{status}, #{reason},#{unSubChannel}, #{channel},
+        #{model}, #{appId}, #{subType}, #{correlator}, DATE_FORMAT(NOW(),"%Y-%m-%d %H:%i:%s"),
+        DATE_FORMAT(NOW(),"%Y-%m-%d %H:%i:%s"), #{extend1}, #{extend2}, #{extend3}, #{extend4})
+    </insert>
+
+    <!--修改订单-->
+    <update id="modifyOrder" parameterType="Order">
+        UPDATE T_SUBPACKAGE
+        <set>
+            <if test="appId != null">
+                appId = #{appId},
+            </if>
+            <if test="unSubChannel != null">
+                unSubChannel = #{unSubChannel},
+            </if>
+            <if test="model != null">
+                model = #{model},
+            </if>
+            lastUpdateTime = DATE_FORMAT(NOW(),"%Y-%m-%d %H:%i:%s")
+        </set>
+        WHERE subId=#{subId}
+    </update>
+
+    <!--修改订单状态-->
+    <update id="modifyOrderStatus">
+        UPDATE T_SUBPACKAGE SET status=#{status} WHERE subId=#{orderId}
+    </update>
+
+    <select id="queryEffectiveOrder" parameterType="String" resultType="Order">
+        <![CDATA[
+          SELECT <include refid="LIST_ORDER_COLUMN"/> FROM T_SUBPACKAGE WHERE status = '0' AND AND startTime <= DATE_FORMAT(NOW(),"%Y-%m-%d %H:%i:%s")
+          AND endTime >= DATE_FORMAT(NOW(),"%Y-%m-%d %H:%i:%s") AND accountId = #{accountId}
+        ]]>
+    </select>
+
+    <!--多条件查询订购关系-->
+    <select id="queryOrderByCondition" parameterType="Map" resultType="Order">
+        <![CDATA[
+            SELECT <include refid="LIST_ORDER_COLUMN"/> FROM T_SUBPACKAGE WHERE 1 = 1
+            <if test="accountId != null">
+                AND accountId = #{accountId}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="startTime != null">
+                AND startTime >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND endTime <= #{endTime}
+            </if>
+        ]]>
+    </select>
+
+    <!--多条件查询订购关系-->
+    <select id="queryOrderCountByCondition" parameterType="Map" resultType="Integer">
+        <![CDATA[
+            SELECT COUNT(1) FROM T_SUBPACKAGE WHERE 1 = 1
+            <if test="accountId != null">
+                AND accountId = #{accountId}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="startTime != null">
+                AND startTime >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND endTime <= #{endTime}
+            </if>
+        ]]>
+    </select>
+</mapper>
