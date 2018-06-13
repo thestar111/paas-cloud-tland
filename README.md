@@ -44,11 +44,11 @@
 
 ###### 	为了方便客户端返回结果统一, 平台返回统一的数据结构
 
-![idea20](http://192.168.0.11:23000/zhouping/resource/raw/master/idea20.jpg)
-![idea21](http://192.168.0.11:23000/zhouping/resource/raw/master/idea21.jpg)
+![idea20](https://raw.githubusercontent.com/thestar111/study/master/images/idea20.jpg)
+![idea21](https://raw.githubusercontent.com/thestar111/study/master/images/idea21.jpg)
 
 ## 技术栈
-![idea9](http://192.168.0.11:23000/zhouping/resource/raw/master/idea9.jpg)
+![idea9](https://raw.githubusercontent.com/thestar111/study/master/images/idea9.jpg)
 
 ## 泰国AIS游戏运营项目工程结构
 ```
@@ -102,7 +102,7 @@
 
 ## 游戏运营支撑平台架构图
 
-![ais](http://192.168.0.11:23000/zhouping/resource/raw/master/ais.png)
+![ais](https://raw.githubusercontent.com/thestar111/study/master/images/ais.png)
 
 ## 游戏运营支撑平台部件及运行环境
 
@@ -118,30 +118,30 @@ paas-cloud-gateway  |服务网关    |Tomcat|tland-api-gateway      |28040|--|--
 ## 开发环境
 
 - 运行SQL脚本
-[SQL脚本语句](http://192.168.0.11:23000/zhouping/resource/raw/master/tland.sql)
+[SQL脚本语句](https://raw.githubusercontent.com/thestar111/study/master/images/tland.sql)
 - 数据库密码加密
 ###### 数据库加密命令：java -cp druid-1.1.9.jar com.alibaba.druid.filter.config.ConfigTools 密码
-![idea4](http://192.168.0.11:23000/zhouping/resource/raw/master/idea4.jpg)
-![idea3](http://192.168.0.11:23000/zhouping/resource/raw/master/idea3.jpg)
+![idea4](https://raw.githubusercontent.com/thestar111/study/master/images/idea4.jpg)
+![idea3](https://raw.githubusercontent.com/thestar111/study/master/images/idea3.jpg)
 
 - IDE 启动
 ###### 以IDEA为例，Eclipse请自行意淫
-![idea1](http://192.168.0.11:23000/zhouping/resource/raw/master/idea1.jpg)
-![idea2](http://192.168.0.11:23000/zhouping/resource/raw/master/idea2.jpg)
+![idea1](https://raw.githubusercontent.com/thestar111/study/master/images/idea1.jpg)
+![idea2](https://raw.githubusercontent.com/thestar111/study/master/images/idea2.jpg)
 ###### 最终配置效果
-![idea17](http://192.168.0.11:23000/zhouping/resource/raw/master/idea17.jpg)
+![idea17](https://raw.githubusercontent.com/thestar111/study/master/images/idea17.jpg)
 
 - IDE 运行JUNIT测试
 ###### 以IDEA为例，Eclipse请自行意淫
-![idea18](http://192.168.0.11:23000/zhouping/resource/raw/master/idea18.jpg)
+![idea18](https://raw.githubusercontent.com/thestar111/study/master/images/idea18.jpg)
 
 ## 环境启动顺序
 
 ###### 1. 启动服务注册中心
-![idea5](http://192.168.0.11:23000/zhouping/resource/raw/master/idea5.jpg)
+![idea5](https://raw.githubusercontent.com/thestar111/study/master/images/idea5.jpg)
 ###### 2. tland-user-service  （下面顺序没有要求）
 ###### 用户服务
-![idea7](http://192.168.0.11:23000/zhouping/resource/raw/master/idea7.jpg)
+![idea7](https://raw.githubusercontent.com/thestar111/study/master/images/idea7.jpg)
 ###### 3. tland-cms-service
 ###### 4. tland-charging-service
 ###### 5. tland-vas-service
@@ -149,7 +149,7 @@ paas-cloud-gateway  |服务网关    |Tomcat|tland-api-gateway      |28040|--|--
 
 ## 项目启动截图
 ###### 注册中心
-![idea6](http://192.168.0.11:23000/zhouping/resource/raw/master/idea6.jpg)
+![idea6](https://raw.githubusercontent.com/thestar111/study/master/images/idea6.jpg)
 
 
 ## 项目部署
@@ -159,17 +159,17 @@ paas-cloud-gateway  |服务网关    |Tomcat|tland-api-gateway      |28040|--|--
 
 ###### 启动如图
 
-![idea10](http://192.168.0.11:23000/zhouping/resource/raw/master/idea10.jpg)
+![idea10](https://raw.githubusercontent.com/thestar111/study/master/images/idea10.jpg)
 
 ###### Tomcat部署服务注册中心注意事项
 ###### 修改server.xml文件
 
-![idea11](http://192.168.0.11:23000/zhouping/resource/raw/master/idea11.jpg)
+![idea11](https://raw.githubusercontent.com/thestar111/study/master/images/idea11.jpg)
 
 
 **如果不配置server.xml，添加Context标签，需要修改服务注册发现地址**
-![idea12](http://192.168.0.11:23000/zhouping/resource/raw/master/idea12.jpg)
-![idea13](http://192.168.0.11:23000/zhouping/resource/raw/master/idea13.jpg)
+![idea12](https://raw.githubusercontent.com/thestar111/study/master/images/idea12.jpg)
+![idea13](https://raw.githubusercontent.com/thestar111/study/master/images/idea13.jpg)
 
 
 ## 开发约束
@@ -196,28 +196,28 @@ paas-cloud-gateway  |服务网关    |Tomcat|tland-api-gateway      |28040|--|--
 - **业务模块业务通用模块命名规则：** `业务系统名-common`, 如`user-common`
 - **业务模块业务实体VO模块命名规则：** `业务系统名-pojo`, 如`user-pojo`
 
-![idea14](http://192.168.0.11:23000/zhouping/resource/raw/master/idea14.jpg)
+![idea14](https://raw.githubusercontent.com/thestar111/study/master/images/idea14.jpg)
 
 **2.所有对外提供接口实现类需要加自定义注解@Api**
-![idea15](http://192.168.0.11:23000/zhouping/resource/raw/master/idea15.jpg)
+![idea15](https://raw.githubusercontent.com/thestar111/study/master/images/idea15.jpg)
 
 ###### 类注释规范
 
-![idea16](http://192.168.0.11:23000/zhouping/resource/raw/master/idea16.jpg)
+![idea16](https://raw.githubusercontent.com/thestar111/study/master/images/idea16.jpg)
 
 **3.日志规范**
 ###### 所有开发调试日志都是DEBUG级别的, 错误信息日志是ERROR级别的。 日志统一规范如下：
 
-![idea22](http://192.168.0.11:23000/zhouping/resource/raw/master/idea22.jpg)
+![idea22](https://raw.githubusercontent.com/thestar111/study/master/images/idea22.jpg)
 
 ###### 业务打印日志：
 
-![idea23](http://192.168.0.11:23000/zhouping/resource/raw/master/idea23.jpg)
+![idea23](https://raw.githubusercontent.com/thestar111/study/master/images/idea23.jpg)
 
 **4.静态方法和变量引用**
 ###### 所有静态变量方法都采用静态导入
 
-![idea24](http://192.168.0.11:23000/zhouping/resource/raw/master/idea24.jpg)
+![idea24](https://raw.githubusercontent.com/thestar111/study/master/images/idea24.jpg)
 
 
 ## 3. 文件存储系统服务映射架构设计
@@ -292,5 +292,5 @@ paas-cloud-gateway  |服务网关    |Tomcat|tland-api-gateway      |28040|--|--
 
 ## 文件存储系统整体结构图
 
-![idea25](http://192.168.0.11:23000/zhouping/resource/raw/master/idea25.jpg)
+![idea25](https://raw.githubusercontent.com/thestar111/study/master/images/idea25.jpg)
 
