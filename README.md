@@ -98,7 +98,7 @@
 
 ## 项目依赖结构图
 
-![struct](http://192.168.0.11:23000/zhouping/resource/raw/master/idea19.jpg)
+![struct](https://raw.githubusercontent.com/thestar111/study/master/images/idea19.jpg)
 
 ## 游戏运营支撑平台架构图
 
